@@ -1,0 +1,105 @@
+name: New Workflow Request
+description: Propose a multi-step workflow
+labels: ["enhancement", "workflow", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a new workflow! Workflows are multi-step sequences that combine multiple abilities.
+
+  - type: input
+    id: workflow-name
+    attributes:
+      label: Workflow Name
+      description: Suggested name for this workflow
+      placeholder: "security-audit"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What should this workflow accomplish?
+      placeholder: A clear description of the workflow's purpose
+    validations:
+      required: true
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case
+      description: When would someone use this workflow?
+      placeholder: Describe the scenario where this workflow is helpful
+    validations:
+      required: true
+
+  - type: textarea
+    id: trigger-keywords
+    attributes:
+      label: Trigger Keywords
+      description: Natural language phrases that should trigger this workflow
+      placeholder: |
+        - "audit my site security"
+        - "check for security issues"
+        - "run security scan"
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Workflow Steps
+      description: List the abilities that should be executed in order
+      placeholder: |
+        1. site-health (check overall site status)
+        2. security-scan (check for security issues)
+        3. update-check (check for outdated software)
+        4. plugin-list (list installed plugins)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: confirmation
+    attributes:
+      label: Confirmation Required?
+      description: Should this workflow require user confirmation before execution?
+      options:
+        - "Yes (contains write operations)"
+        - "No (read-only operations)"
+    validations:
+      required: true
+
+  - type: textarea
+    id: rollback
+    attributes:
+      label: Rollback Strategy
+      description: If a step fails, what should happen? Should previous steps be rolled back?
+      placeholder: Describe how to handle failures
+
+  - type: textarea
+    id: success-criteria
+    attributes:
+      label: Success Criteria
+      description: How do we know if this workflow completed successfully?
+      placeholder: Define what success looks like
+
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Does this workflow require any new abilities that don't exist yet?
+      placeholder: List any abilities that need to be created first
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information or implementation notes
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Implementation
+      options:
+        - label: "I'm willing to implement this workflow myself"

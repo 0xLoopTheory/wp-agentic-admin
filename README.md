@@ -283,45 +283,69 @@ npm run test:watch          # Watch mode
 - **Permission-Based**: All abilities respect WordPress capabilities
 - **Confirmation Required**: Destructive actions require explicit approval
 
+## Project Vision
+
+WP Agentic Admin aims to make WordPress site management accessible through natural language while maintaining privacy and security. We're building:
+
+1. **Privacy-First AI** - No external APIs, no data collection, fully local execution
+2. **Extensible Architecture** - Third-party plugins can add custom abilities via the WordPress Abilities API
+3. **Smart Reasoning** - Semantic translation layer to bridge natural language with technical operations
+4. **Community-Driven** - Open development with transparent roadmap and contributor recognition
+
+See [IDEAS.md](IDEAS.md) for our feature roadmap and future plans.
+
+## Community & Support
+
+- **GitHub Discussions**: Ask questions, share ideas, and connect with other users
+- **WordPress Slack**: Join the `#agentic-admin` channel for real-time discussion
+- **Issue Tracker**: Report bugs or request features on [GitHub Issues](https://github.com/pluginslab/wordpress-agentic-admin/issues)
+
 ## Contributing
 
-Contributions are welcome! Here's how to get started:
+We welcome contributions from developers, designers, testers, and documentation writers! Here's how to get involved:
 
-### Priority Areas
+### Ways to Contribute
 
-1. **Implement new abilities** - Expand SRE capabilities
-2. **Create workflows** - Build multi-step workflows for common admin tasks
-3. **Documentation** - Add examples, use cases, and guides
-4. **Testing** - Help test with real WordPress sites and hosting environments
+1. 🔧 **Code**: Implement new abilities, improve the ReAct agent, or fix bugs
+2. 📝 **Documentation**: Write guides, tutorials, or improve existing docs
+3. 🧪 **Testing**: Test with real WordPress sites and report issues
+4. 💡 **Ideas**: Propose new abilities or workflows in [GitHub Discussions](https://github.com/pluginslab/wordpress-agentic-admin/discussions)
+5. 🌍 **Translation**: Help translate the plugin into other languages
 
-### Understanding the Architecture
+### Getting Started
 
-Before contributing, please review:
+1. Read our [Contributing Guide](.github/CONTRIBUTING.md) for detailed guidelines
+2. Check our [Code of Conduct](.github/CODE_OF_CONDUCT.md)
+3. Review the architecture documentation:
+   - [ARCHITECTURE.md](docs/ARCHITECTURE.md) - ReAct loop design
+   - [Abilities Guide](docs/ABILITIES-GUIDE.md) - Implementing abilities
+   - [Workflows Guide](docs/WORKFLOWS-GUIDE.md) - Creating workflows
+4. Pick an issue labeled `good-first-issue` or propose your own contribution
 
-- [ARCHITECTURE.md](docs/ARCHITECTURE.md) - Understand the ReAct loop design
-- [Abilities Guide](docs/ABILITIES-GUIDE.md) - Learn how to implement abilities
-- [Workflows Guide](docs/WORKFLOWS-GUIDE.md) - Learn how to create workflows
+### Quick Contribution Guidelines
 
-### Guidelines
+- **Branch from `develop`** - All PRs should target the `develop` branch
+- **Follow WordPress Coding Standards** - We use WordPress PHP and JavaScript standards
+- **Write tests** - New abilities should include tests when applicable
+- **Document your changes** - Update relevant documentation
+- **Disclose AI assistance** - If you used AI tools, mention it in your PR description
+- **Keep PRs focused** - One feature or fix per PR for easier review
 
-- Each ability should do **one thing** (WordPress Abilities API principle)
-- Workflows should be as **rigid as safety requires**
-- Always **preview before execution** for user trust
-- Target **1.5B-3B local models** (Qwen, Phi-3, Gemma, Llama 3.2)
-- Use **shared helpers** to avoid code duplication across related abilities
+For detailed guidelines, see [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
-Submit PRs with:
-- PHP + JavaScript implementation
-- Documentation
-- Examples of natural language queries that trigger it
-- Tests (when applicable)
+## Contributors
+
+Thank you to all our contributors! See the [GitHub Contributors page](https://github.com/pluginslab/wordpress-agentic-admin/graphs/contributors) for the full list.
+
+Want to see your name here? Check out our [Contributing Guide](.github/CONTRIBUTING.md)!
 
 ## License
 
 GPL-2.0-or-later
 
-## Credits
+## Acknowledgments
 
 - WordPress AI Team for the [Abilities API](https://github.com/WordPress/abilities-api)
 - [WebLLM](https://github.com/mlc-ai/web-llm) for browser-based LLM inference
-- Created for CloudFest Hackathon 2026
+- [Transformers.js](https://github.com/xenova/transformers.js) for semantic translation capabilities
+- CloudFest Hackathon 2026 for the initial development sprint

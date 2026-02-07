@@ -1,0 +1,84 @@
+name: Documentation Improvement
+description: Suggest improvements to documentation
+labels: ["documentation", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation!
+
+  - type: dropdown
+    id: doc-type
+    attributes:
+      label: Documentation Type
+      description: What kind of documentation needs improvement?
+      options:
+        - "User Guide"
+        - "Developer Guide"
+        - "API Documentation"
+        - "Tutorial/Example"
+        - "Code Comments"
+        - "README"
+        - "Architecture Documentation"
+        - "Other"
+    validations:
+      required: true
+
+  - type: input
+    id: file
+    attributes:
+      label: File/Section
+      description: Which file or section needs improvement?
+      placeholder: "docs/ABILITIES-GUIDE.md - Section 3"
+
+  - type: dropdown
+    id: issue-type
+    attributes:
+      label: Issue Type
+      description: What's wrong with the current documentation?
+      options:
+        - "Missing information"
+        - "Incorrect/outdated information"
+        - "Unclear explanation"
+        - "Broken links"
+        - "Typos/grammar"
+        - "Needs more examples"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current Documentation
+      description: Quote or describe the current documentation (if applicable)
+      placeholder: What does it currently say?
+
+  - type: textarea
+    id: suggested
+    attributes:
+      label: Suggested Improvement
+      description: What should it say instead? How can we improve it?
+      placeholder: Your suggested changes or additions
+    validations:
+      required: true
+
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples
+      description: Provide code examples or screenshots if helpful
+      placeholder: Any examples that would clarify the improvement
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other information
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Implementation
+      options:
+        - label: "I'm willing to submit a PR with these documentation changes"

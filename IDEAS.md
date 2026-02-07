@@ -1,19 +1,34 @@
 # WP Agentic Admin - Ideas & Future Features
 
-This document captures feature ideas and improvements. No version numbers, no timelines - just a collection of possibilities. What gets built first gets released first.
+This document captures feature ideas and improvements aligned with CloudFest Hackathon goals. No version numbers, no timelines - what gets built first gets released first.
 
 ---
 
-## 🎯 Current Active Work
+## 🏆 Hackathon Priorities
 
-### Chat UI - Right Sidebar
+These features align with CloudFest Hackathon goals and are targeted for implementation during the event.
+
+### 1. Chat UI - Right Sidebar
 **Mission:** Move chat interface from settings page to a persistent right sidebar (like WP admin menu on left) that toggles with a button near "howdy USERNAME" at the top right.
 
 **Why:** Makes the AI assistant always accessible without navigating to a specific page. Natural integration into WordPress admin workflow.
 
+**Hackathon Goal:** Better UX integration for continuous workflow.
+
 ---
 
-### SLM Strategy - Semantic Translation Layer
+### 2. WP-CLI Testing Tool
+**Mission:** Build a WP-CLI command that allows testing NLP calls as if using the chat interface, but from the command line for automated testing.
+
+**Why:** Enable automated testing of natural language → ability mapping without manual browser interaction. Critical for regression testing as abilities grow.
+
+**Example:** `wp agentic test "my site is slow"` → Returns which abilities would be triggered and their execution results.
+
+**Hackathon Goal:** Enhance small model reliability through systematic testing.
+
+---
+
+### 3. SLM Strategy - Semantic Translation Layer
 **Mission:** Implement nano-embedding model (Xenova/all-MiniLM-L6-v2, ~23MB) as a "translator" layer between user intent and the small language model. Use vector similarity matching to bridge the gap between natural language and technical commands.
 
 **Why:** Small 1.5B-3B models excel at syntax but struggle with fuzzy intent mapping. The semantic translation layer solves: error recovery, JSON output robustness, prompt engineering, and question detection - all at once.
@@ -22,29 +37,22 @@ This document captures feature ideas and improvements. No version numbers, no ti
 
 **Impact:** Handles model updates, quantization testing, and WebLLM library updates naturally as part of implementation.
 
----
-
-### WP-CLI Testing Tool
-**Mission:** Build a WP-CLI command that allows testing NLP calls as if using the chat interface, but from the command line for automated testing.
-
-**Why:** Enable automated testing of natural language → ability mapping without manual browser interaction. Critical for regression testing as abilities grow.
-
-**Example:** `wp agentic test "my site is slow"` → Returns which abilities would be triggered and their execution results.
+**Hackathon Goal:** Improve local LLM reasoning and tool selection + enhance small model reliability.
 
 ---
 
-## 💡 Future Feature Ideas
-
-### Error Log Improvements
+### 4. Error Log Improvements
 **Mission:** Show most recent errors instead of first N entries from debug.log.
 
 **Current Problem:** Returns first entries, often showing old/irrelevant errors.
 
 **Enhancement:** Filter by level (ERROR → WARNING → any), add timestamp highlighting (< 1 hour, < 24 hours, older).
 
+**Hackathon Goal:** Better error handling and log analysis.
+
 ---
 
-### Expanded Abilities Library
+### 5. Expanded Abilities Library
 **Mission:** Add 16 new SRE and WordPress-specific abilities based on common admin tasks.
 
 **Categories:**
@@ -75,9 +83,11 @@ This document captures feature ideas and improvements. No version numbers, no ti
 
 **Bonus:** 3 new workflows (security-audit, content-audit, pre-deployment-check)
 
+**Hackathon Goal:** Expand abilities and workflows.
+
 ---
 
-### Semantic Workflows - NLP Translation for Workflows
+### 6. Semantic Workflows - NLP Translation for Workflows
 **Mission:** Extend semantic translation layer to handle workflow detection and composition. Enable both direct workflow matching (user intent → pre-defined workflow) and LLM-assisted composition (semantic translation helps LLM pick relevant abilities to chain together).
 
 **Two Approaches:**
@@ -95,7 +105,35 @@ This document captures feature ideas and improvements. No version numbers, no ti
 
 **Dependency:** Requires SLM Strategy implementation first. Uses same embedding infrastructure for workflow matching.
 
+**Hackathon Goal:** Expand abilities and workflows.
+
 ---
+
+### 7. Google AI API Browser Extension Integration
+**Mission:** Integrate Google AI API support alongside WebLLM for users who prefer cloud-based models or lack WebGPU-capable hardware.
+
+**Why:** Provides fallback option and accessibility for users without modern GPUs. Gives users choice between privacy-first local execution and cloud-based convenience.
+
+**Technical:** Detect WebGPU availability → Offer Google AI API as alternative → Same Abilities API, different execution backend.
+
+**Hackathon Goal:** Broader device compatibility and user choice.
+
+---
+
+### 8. WP AI Client Core Proposal Adoption
+**Mission:** Align with WordPress core's AI Client proposal to ensure compatibility with future WordPress AI standards.
+
+**Why:** Position WP Agentic Admin as a reference implementation for WordPress AI integration. Ensure long-term compatibility with WordPress ecosystem.
+
+**Research Needed:** Study WP AI Client proposal specifications and identify alignment points with our Abilities API.
+
+**Hackathon Goal:** WordPress ecosystem integration and standards compliance.
+
+---
+
+## 💡 Future Feature Ideas
+
+Features to pursue after hackathon priorities are complete.
 
 ### Larger Model Support (7B+)
 **Mission:** Contingency plan if SLM Strategy doesn't achieve desired results with 3B models. Detect model size and enable enhanced features for users with hardware capable of running 7B+ models.
@@ -179,6 +217,8 @@ Embed WordPress documentation in vector database. Use RAG for technical question
 ---
 
 ## 📝 Notes
+
+**Hackathon Focus:** The top 8 priorities align with CloudFest Hackathon goals. Items #1 and #2 (Sidebar UI + CLI Testing) are targeted for completion before/during the hackathon.
 
 **Philosophy:** No version numbers. No rigid timelines. What gets done first gets released. Focus on making the core experience excellent before adding complexity.
 
