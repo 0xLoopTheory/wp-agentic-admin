@@ -22,7 +22,7 @@
  *
  */
 
-import { useCallback, useEffect, useRef, useState } from '@wordpress/element';
+import { useCallback, useEffect, useMemo, useRef, useState } from '@wordpress/element';
 import { Button, Modal, Notice, Snackbar } from '@wordpress/components';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
@@ -445,19 +445,35 @@ const ChatContainer = ( {
 		setStreamingText( '' );
 	}, [] );
 
-	// Combine messages with streaming message for display
-	const displayMessages =
-		isStreaming && streamingText
-			? [
-					...messages,
-					{
-						id: 'streaming',
-						type: 'assistant',
-						content: streamingText + '▊',
-						timestamp: new Date().toISOString(),
-					},
-			  ]
-			: messages;
+	// Combine messages with loading/streaming indicators for display
+	const displayMessages = useMemo( () => {
+		const msgs = [ ...messages ];
+
+		// Show loading indicator inline in the message flow
+		const showThinking = isLoading && ! isExecutingTool && ! isStreaming && ! isRunningWorkflow;
+		const showRunningTool = isExecutingTool && ! isRunningWorkflow;
+
+		if ( showThinking || showRunningTool ) {
+			msgs.push( {
+				id: 'loading-indicator',
+				type: 'loading',
+				content: showRunningTool ? 'Running tool...' : 'Thinking...',
+				timestamp: new Date().toISOString(),
+			} );
+		}
+
+		// Show streaming text as it arrives
+		if ( isStreaming && streamingText ) {
+			msgs.push( {
+				id: 'streaming',
+				type: 'assistant',
+				content: streamingText + '▊',
+				timestamp: new Date().toISOString(),
+			} );
+		}
+
+		return msgs;
+	}, [ messages, isLoading, isExecutingTool, isStreaming, isRunningWorkflow, streamingText ] );
 
 	return (
 		<div className="wp-agentic-admin-chat-container">
@@ -541,38 +557,6 @@ const ChatContainer = ( {
 								} }
 							/>
 						</div>
-					</div>
-				</div>
-			) }
-
-			{ /* Thinking indicator while LLM is processing (before tool call or streaming) */ }
-			{ isLoading && ! isExecutingTool && ! isStreaming && ! isRunningWorkflow && (
-				<div className="agentic-message agentic-message--loading">
-					<div className="agentic-timeline">
-						<div className="agentic-timeline__line" />
-						<div className="agentic-timeline__dot agentic-timeline__dot--loading" />
-					</div>
-					<div className="agentic-loading">
-						<div className="agentic-loading__spinner" />
-						<span className="agentic-loading__text">
-							Thinking...
-						</span>
-					</div>
-				</div>
-			) }
-
-			{ /* Loading spinner while tool is executing (single tool, not workflow) */ }
-			{ isExecutingTool && ! isRunningWorkflow && (
-				<div className="agentic-message agentic-message--loading">
-					<div className="agentic-timeline">
-						<div className="agentic-timeline__line" />
-						<div className="agentic-timeline__dot agentic-timeline__dot--loading" />
-					</div>
-					<div className="agentic-loading">
-						<div className="agentic-loading__spinner" />
-						<span className="agentic-loading__text">
-							Running tool...
-						</span>
 					</div>
 				</div>
 			) }
