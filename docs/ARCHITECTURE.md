@@ -358,7 +358,7 @@ See [tests/TESTING.md](../tests/TESTING.md) for the full testing guide.
 - Workflow keyword detection for common patterns
 - 3B models (Qwen2.5-3B, Llama-3.2-3B) — 74% E2E accuracy
 
-**v0.2.0 (current):**
+**v0.3.0 (current):**
 - Upgraded to 7B models — 96% E2E accuracy with Qwen2.5-7B
 - 100% JSON reliability (up from 63% with 3B models)
 - JSON envelope fix (prevents raw action wrappers leaking to users)
