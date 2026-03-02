@@ -368,7 +368,6 @@ See [tests/TESTING.md](../tests/TESTING.md) for the full testing guide.
 - 4 workflows tested at 100% pass rate
 
 **Future Enhancements:**
-- Semantic translation layer for intent matching (see SLM-STRATEGY.md)
 - Expanded abilities library (16+ new abilities proposed)
 - Chat UI sidebar for persistent access
 - Cloud model fallback for devices without WebGPU

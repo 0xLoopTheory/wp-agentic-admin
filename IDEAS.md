@@ -28,18 +28,9 @@ These features align with CloudFest Hackathon goals and are targeted for impleme
 
 ---
 
-### 3. SLM Strategy - Semantic Translation Layer
-**Mission:** Implement nano-embedding model (Xenova/all-MiniLM-L6-v2, ~23MB) as a "translator" layer between user intent and the small language model. Use vector similarity matching to bridge the gap between natural language and technical commands.
+### ~~3. SLM Strategy - Semantic Translation Layer~~ SUPERSEDED
 
-**Why:** Small 1.5B-3B models excel at syntax but struggle with fuzzy intent mapping. The semantic translation layer solves: error recovery, JSON output robustness, prompt engineering, and question detection - all at once.
-
-**Technical:** User says "site feels heavy" → Embedding model matches to `db-optimize` → Context injected into SLM prompt → Grammar-constrained JSON output.
-
-**Impact:** Handles model updates, quantization testing, and WebLLM library updates naturally as part of implementation.
-
-**Hackathon Goal:** Improve local LLM reasoning and tool selection + enhance small model reliability.
-
-> **Update (v0.2.0):** The upgrade to 7B models (Qwen2.5-7B) achieved 96% E2E accuracy *without* the semantic translation layer. This idea remains valuable as a potential optimization for lower-end hardware (where 3B models are the only option), but is no longer a critical priority.
+**Status:** The upgrade to 7B models (Qwen2.5-7B) in v0.2.0 achieved 96% E2E accuracy *without* the semantic translation layer. 7B models handle fuzzy intent mapping natively. This approach is no longer needed.
 
 ---
 
@@ -89,25 +80,9 @@ These features align with CloudFest Hackathon goals and are targeted for impleme
 
 ---
 
-### 6. Semantic Workflows - NLP Translation for Workflows
-**Mission:** Extend semantic translation layer to handle workflow detection and composition. Enable both direct workflow matching (user intent → pre-defined workflow) and LLM-assisted composition (semantic translation helps LLM pick relevant abilities to chain together).
+### ~~6. Semantic Workflows - NLP Translation for Workflows~~ SUPERSEDED
 
-**Two Approaches:**
-
-**A) Direct Workflow Matching** (simpler, first step)
-- User: "something is broken"
-- Embedding matches → "diagnostic workflow"
-- Execute pre-defined workflow
-
-**B) LLM-Composed Workflows** (more advanced)
-- User: "something is broken"
-- Semantic translation provides context about available abilities
-- LLM composes: `[site-health, error-log-read, plugin-list]`
-- Show preview → Execute with confirmation
-
-**Dependency:** Requires SLM Strategy implementation first. Uses same embedding infrastructure for workflow matching.
-
-**Hackathon Goal:** Expand abilities and workflows.
+**Status:** Depended on the SLM Strategy (#3). With 7B models, the ReAct loop already handles adaptive tool composition (96% accuracy), and keyword-based workflow detection covers common patterns. The LLM-composed workflow approach (option B) is effectively what the ReAct loop does already.
 
 ---
 
