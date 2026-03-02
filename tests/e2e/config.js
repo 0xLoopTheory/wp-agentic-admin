@@ -23,8 +23,8 @@ export const config = {
 
 	// Model configuration
 	models: {
-		default: 'Hermes-2-Pro-Mistral-7B-q4f16_1-MLC',
-		alternative: 'Llama-3.1-8B-Instruct-q4f16_1-MLC',
+		default: 'Qwen2.5-7B-Instruct-q4f16_1-MLC',
+		alternative: 'Hermes-2-Pro-Mistral-7B-q4f16_1-MLC',
 	},
 
 	// CSS selectors for interacting with the plugin UI

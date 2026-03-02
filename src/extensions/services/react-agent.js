@@ -8,8 +8,8 @@
  * 4. Repeats until task is complete
  *
  * Supports two modes:
- * - Function calling (for Hermes models)
- * - Prompt-based JSON (for Qwen, Flash, and other models)
+ * - Function calling (for models with native FC support)
+ * - Prompt-based JSON (fallback for models without FC or with FC limitations)
  *
  * @since 0.1.0
  */

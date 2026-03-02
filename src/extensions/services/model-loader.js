@@ -14,12 +14,12 @@ import * as webllm from '@mlc-ai/web-llm';
 
 /**
  * Default model configuration
- * Using Hermes-2-Pro-Mistral-7B for reliable function calling and reasoning
+ * Using Qwen2.5-7B-Instruct for strong JSON/FC support and instruction following
  * See: https://github.com/mlc-ai/web-llm
  *
  * v2.0: Upgraded to 7B models for better JSON output, multi-step reasoning, and error recovery
  */
-const DEFAULT_MODEL = 'Hermes-2-Pro-Mistral-7B-q4f16_1-MLC';
+const DEFAULT_MODEL = 'Qwen2.5-7B-Instruct-q4f16_1-MLC';
 
 /**
  * Model configuration options
@@ -33,6 +33,7 @@ const MODEL_CONFIG = {
  * Context window sizes for different models
  */
 const MODEL_CONTEXT_SIZES = {
+	'Qwen2.5-7B-Instruct-q4f16_1-MLC': 32768,
 	'Hermes-2-Pro-Mistral-7B-q4f16_1-MLC': 32768,
 	'Llama-3.1-8B-Instruct-q4f16_1-MLC': 8192,
 	// Default fallback
@@ -967,13 +968,28 @@ class ModelLoader {
 	static getAvailableModels() {
 		return [
 			{
+				id: 'Qwen2.5-7B-Instruct-q4f16_1-MLC',
+				name: 'Qwen 2.5 7B (Q4)',
+				size: '~4.5GB',
+				vram: '~5GB',
+				description:
+					'Alibaba Qwen 2.5 7B. Strong JSON output, reliable function calling, excellent instruction following.',
+				recommended: true,
+				capabilities: [
+					'function calling',
+					'complex workflows',
+					'advanced reasoning',
+					'JSON output',
+				],
+			},
+			{
 				id: 'Hermes-2-Pro-Mistral-7B-q4f16_1-MLC',
 				name: 'Hermes 2 Pro 7B (Q4)',
 				size: '~4.5GB',
 				vram: '~5GB',
 				description:
 					'NousResearch Hermes 2 Pro 7B. 90% function calling score, reliable JSON output.',
-				recommended: true,
+				recommended: false,
 				capabilities: [
 					'function calling',
 					'complex workflows',
