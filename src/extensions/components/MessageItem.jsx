@@ -175,6 +175,24 @@ const MessageItem = ( { message } ) => {
 		);
 	}
 
+	// Loading indicator (inline in message flow)
+	if ( type === 'loading' ) {
+		return (
+			<div className="agentic-message agentic-message--loading">
+				<div className="agentic-timeline">
+					<div className="agentic-timeline__line" />
+					<div className="agentic-timeline__dot agentic-timeline__dot--loading" />
+				</div>
+				<div className="agentic-loading">
+					<div className="agentic-loading__spinner" />
+					<span className="agentic-loading__text">
+						{ content }
+					</span>
+				</div>
+			</div>
+		);
+	}
+
 	// System/welcome message
 	if ( type === MessageType.SYSTEM ) {
 		// Parse content and group list items together
