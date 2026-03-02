@@ -130,15 +130,11 @@ class Abilities {
 		}
 
 		if ( function_exists( 'wp_agentic_admin_register_plugin_deactivate' ) ) {
-
-			if ( function_exists( 'wp_agentic_admin_register_plugin_activate' ) ) {
-				wp_agentic_admin_register_plugin_activate();
-			}
 			wp_agentic_admin_register_plugin_deactivate();
+		}
 
-			if ( function_exists( 'wp_agentic_admin_register_plugin_activate' ) ) {
-				wp_agentic_admin_register_plugin_activate();
-			}
+		if ( function_exists( 'wp_agentic_admin_register_plugin_activate' ) ) {
+			wp_agentic_admin_register_plugin_activate();
 		}
 
 		if ( function_exists( 'wp_agentic_admin_register_site_health' ) ) {

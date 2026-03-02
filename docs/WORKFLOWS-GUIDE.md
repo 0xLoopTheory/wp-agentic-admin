@@ -54,13 +54,13 @@ The choice depends on safety requirements and task predictability. For detailed 
 | Property | Type | Description |
 |----------|------|-------------|
 | `label` | string | Human-readable name for the workflow |
-| `description` | string | What this workflow does |
 | `steps` | array | Ordered array of step definitions |
 
 ### Optional Properties
 
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
+| `description` | string | `undefined` | What this workflow does |
 | `keywords` | string[] | `[]` | Trigger words that activate this workflow |
 | `requiresConfirmation` | boolean | `true` | Show confirmation dialog before execution |
 | `confirmationMessage` | string | Auto-generated | Custom confirmation message |
@@ -222,11 +222,13 @@ wp.agenticAdmin.registerWorkflow('my-plugin/migration', {
         {
             abilityId: 'my-plugin/transform-data',
             label: 'Transform data format',
-            rollback: async (stepResult, allResults) => {
-                // Called if a later step fails
+            rollback: async (result, params) => {
+                // Called if a later step fails.
+                // `result` is the raw ability execution result from this step.
+                // `params` are the parameters that were passed to this step.
                 console.log('Rolling back transformation...');
                 await wp.agenticAdmin.executeAbility('my-plugin/restore-data', {
-                    backupId: allResults[0].result.backupId,
+                    backupId: result.backupId,
                 });
             },
         },
@@ -291,42 +293,98 @@ if (wp.agenticAdmin.hasWorkflow('my-plugin/my-workflow')) {
 }
 ```
 
+### Ad-Hoc Workflows
+
+The `WorkflowRegistry` supports dynamically creating workflows from parsed user intents via `createFromIntents(intents, originalMessage)`. This is used when the `IntentParser` detects multiple actions in a single user message (e.g., "flush the cache and optimize the database").
+
+Ad-hoc workflows have the following characteristics:
+- Auto-generated IDs in the format `adhoc-{timestamp}` (e.g., `adhoc-1704067200000`)
+- Flagged with `isAdhoc: true` to distinguish them from registered workflows
+- Not registered in the workflow registry (they are returned directly for one-time use)
+- No keywords (they are never matched via keyword detection)
+- Step labels are auto-generated from the ability ID (e.g., "Step 1: cache flush")
+- Confirmation is required if any step involves a write operation
+
+The `WorkflowOrchestrator` provides `executeFromIntents(intents, originalMessage)` as a convenience method that creates and immediately executes an ad-hoc workflow.
+
+### WorkflowOrchestrator Methods
+
+The `WorkflowOrchestrator` singleton provides these methods for controlling workflow execution:
+
+| Method | Description |
+|--------|-------------|
+| `execute(workflow, initialParams)` | Execute a workflow definition |
+| `executeFromIntents(intents, originalMessage)` | Create and execute an ad-hoc workflow from parsed intents |
+| `abort()` | Abort the currently running workflow |
+| `reset()` | Reset the orchestrator state (clears `currentState` and `abortController`) |
+| `isRunning()` | Returns `true` if a workflow is currently running or awaiting confirmation |
+| `getState()` | Returns the current `WorkflowState` object or `null` |
+| `getProgressMessage()` | Returns a human-readable progress message |
+| `setCallbacks(callbacks)` | Set callback functions for workflow events |
+
+> **Concurrency Protection:** Only one workflow can run at a time. Attempting to call `execute()` while another workflow is running will throw an error: "Another workflow is already running". Use `isRunning()` to check before starting a new workflow, or `abort()` to cancel the current one.
+
+### Workflow Callbacks
+
+The `WorkflowOrchestrator` supports 10 callback functions for UI updates and workflow lifecycle events. Set them via `setCallbacks()`:
+
+| Callback | Arguments | Description |
+|----------|-----------|-------------|
+| `onWorkflowStart` | `(workflow, state)` | Called when a workflow begins execution |
+| `onStepStart` | `(step, stepIndex)` | Called before each step executes |
+| `onStepComplete` | `(stepResult)` | Called after a step succeeds |
+| `onStepFailed` | `(stepResult, error)` | Called when a step fails |
+| `onRollbackStart` | `(rollbackStack)` | Called before rollback begins |
+| `onRollbackComplete` | `(rollbackResults)` | Called after rollback finishes |
+| `onWorkflowComplete` | `(workflowResult)` | Called when all steps succeed |
+| `onWorkflowFailed` | `(workflowResult)` | Called when the workflow fails |
+| `onConfirmationRequired` | `(workflow, details)` | Called to request user confirmation (async, must return boolean) |
+| `onProgress` | `({step, total, label, percentage})` | Called before each step with progress info |
+
 ## How Workflow Execution Works
 
-When a user triggers a workflow (via keywords or explicit selection):
+When a user sends a message, the `MessageRouter` determines how to handle it:
 
 ```
-User message → Keyword detection → Match workflow
+User message → Question pre-filter → Is informational question?
                                         │
-                                        ▼
-                              ┌──────────────────┐
-                              │ Show confirmation │
-                              │ (if required)     │
-                              └──────────────────┘
-                                        │
-                                        ▼
-                              ┌──────────────────┐
-                              │ Execute Step 1   │
-                              └──────────────────┘
-                                        │
-                                        ▼
-                              ┌──────────────────┐
-                              │ Execute Step 2   │◄── mapParams(previousResults)
-                              └──────────────────┘
-                                        │
-                                        ▼
-                                      ...
-                                        │
-                                        ▼
-                              ┌──────────────────┐
-                              │ Execute Step N   │
-                              └──────────────────┘
-                                        │
-                                        ▼
-                              ┌──────────────────┐
-                              │ Generate summary │◄── summarize(allResults)
-                              └──────────────────┘
+                              YES ──────┤────── NO
+                              │                  │
+                              ▼                  ▼
+                    ┌────────────────┐  Keyword detection → Match workflow?
+                    │ Conversational │         │                    │
+                    │ mode (no       │   NO ───┤              YES ─┤
+                    │ workflows)     │         ▼                    ▼
+                    └────────────────┘  ┌────────────┐   ┌──────────────────┐
+                                        │ ReAct loop │   │ Show confirmation │
+                                        └────────────┘   │ (if required)     │
+                                                         └──────────────────┘
+                                                                    │
+                                                                    ▼
+                                                          ┌──────────────────┐
+                                                          │ Execute Step 1   │
+                                                          └──────────────────┘
+                                                                    │
+                                                                    ▼
+                                                          ┌──────────────────┐
+                                                          │ Execute Step 2   │◄── mapParams(previousResults)
+                                                          └──────────────────┘
+                                                                    │
+                                                                    ▼
+                                                                  ...
+                                                                    │
+                                                                    ▼
+                                                          ┌──────────────────┐
+                                                          │ Execute Step N   │
+                                                          └──────────────────┘
+                                                                    │
+                                                                    ▼
+                                                          ┌──────────────────┐
+                                                          │ Generate summary │◄── summarize(allResults)
+                                                          └──────────────────┘
 ```
+
+The question pre-filter uses regex patterns (defined in `MessageRouter`) to detect informational questions such as "what is...", "how do...", "explain...", etc. If a message matches these patterns, it is routed to conversational mode and **never** checked against workflow keywords. Only non-question messages proceed to keyword detection.
 
 ### On Failure
 
@@ -336,14 +394,29 @@ If a step fails and is not marked as `optional`:
 2. Rollback functions are called in reverse order (N-1 → 1)
 3. Error message is shown to user
 
+### Skipped Steps
+
+Steps skipped via `includeIf` are recorded with `success: true` and `skipped: true`. This means `results.every(r => r.success)` returns `true` even when steps were skipped. If your `summarize` function needs to distinguish between executed and skipped steps, check the `skipped` flag:
+
+```javascript
+const executedSteps = results.filter(r => !r.skipped);
+const skippedSteps = results.filter(r => r.skipped);
+```
+
+### Keyword Scoring Algorithm
+
+Workflow detection uses a scoring algorithm to determine which workflow best matches a user message. For each workflow, the system iterates over its `keywords` array and checks if the lowercased user message contains each keyword. When a keyword matches, the **length of the keyword string** is added to the score (longer keyword phrases carry more weight). The workflow with the highest score wins, but only if the score meets a **minimum threshold of 5**. This prevents very short or coincidental matches from triggering workflows.
+
+For example, if a message contains "full cleanup" (length 12) and "maintenance" (length 11), the score would be 23.
+
 ## Built-in Workflows
 
 WP-Agentic-Admin includes these workflows out of the box:
 
 | ID | Label | Steps |
 |----|-------|-------|
-| `wp-agentic-admin/site-cleanup` | Full Site Cleanup | Cache flush → DB optimize → Site health |
-| `wp-agentic-admin/performance-check` | Quick Performance Check | Site health → Error log |
+| `wp-agentic-admin/site-cleanup` | Full Site Cleanup | Cache flush → DB optimize (conditional, `includeIf` skips if recently optimized) → Site health |
+| `wp-agentic-admin/performance-check` | Quick Performance Check | Site health → Error log (optional, `includeIf` skips unless debug mode is on or user mentioned errors) |
 | `wp-agentic-admin/plugin-audit` | Plugin Audit | Plugin list → Site health |
 | `wp-agentic-admin/database-maintenance` | Database Maintenance | DB optimize → Cache flush |
 
@@ -515,6 +588,8 @@ The system auto-extracts common variables from previous step results:
 | `{step0Result}` | Raw result from step 0 | Full object |
 | `{step1Result}` | Raw result from step 1 | Full object |
 | `{ability-name}` | Result by ability short ID | `{site-health}` |
+| `{completedSteps}` | Number of completed steps so far | "2" |
+| `{timestamp}` | Current timestamp (`Date.now()`) | "1704067200000" |
 
 **Benefits:**
 - ✅ Semantic understanding (can interpret context)

@@ -84,6 +84,3 @@ export {
 	getWorkflows,
 	hasWorkflow,
 } from './agentic-abilities-api';
-
-// Legacy exports (kept for reference, not actively used)
-export { default as aiService } from './ai-service';

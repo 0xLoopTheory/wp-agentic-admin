@@ -11,6 +11,9 @@ This document explains the philosophical and architectural decisions behind WP-A
 - [Workflow Detection](#workflow-detection)
 - [Why Not Agent Skills Format?](#why-not-agent-skills-format)
 - [Small Model Optimizations](#small-model-optimizations)
+- [Testing](#testing)
+- [Evolution](#evolution)
+- [Codebase Overview](#codebase-overview)
 
 ---
 
@@ -30,7 +33,7 @@ WP-Agentic-Admin uses a **ReAct (Reasoning + Acting) pattern** that balances:
 
 1. **Adaptive execution** - AI decides tools based on observations
 2. **Safety first** - Confirmations for destructive actions
-3. **Local-first** - Works with small (1.5B-3B parameter) models running on-device
+3. **Local-first** - Works with small (3B parameter) models running on-device
 4. **Workflow shortcuts** - Keyword-based triggers for common multi-step operations
 
 ### How ReAct Works
@@ -112,9 +115,11 @@ Everything runs in the browser using WebLLM and WebGPU. No server-side AI requir
 
 **Why:** Privacy, zero server costs, works offline, GDPR compliant by design.
 
+**Service Worker Architecture:** The AI model is hosted in a Service Worker (`sw.js`) using `ServiceWorkerMLCEngineHandler` from WebLLM. This allows the model to persist in GPU memory across wp-admin page navigations -- the model stays loaded as long as at least one browser tab is connected. Client pages communicate with the Service Worker via `postMessage`. This avoids re-downloading and re-loading the model on every page change.
+
 ### 4. Small Model Friendly
 
-Optimized for 1.5B-3B parameter models (Qwen, Phi-3, Gemma).
+Optimized for 3B parameter models (Qwen2.5-3B, Llama-3.2-3B).
 
 **Why:** Runs on consumer hardware, lower memory usage, faster inference.
 
@@ -139,6 +144,8 @@ ReAct Loop (AI-driven adaptive execution)
 ```
 
 ### ReAct Loop Flow
+
+> **Note:** The ReAct agent supports TWO execution modes: **function-calling mode** (for Hermes-compatible models that support native tool use) and **prompt-based JSON mode** (for Qwen, Flash, and other models that need structured prompts). The mode is auto-detected on the first inference call based on whether the model supports function calling.
 
 ```javascript
 while (iteration < maxIterations) {
@@ -203,13 +210,20 @@ For common multi-step operations, pre-defined workflows can be triggered via key
 ### How It Works
 
 ```javascript
+// Simplified overview - actual execution goes through WorkflowOrchestrator.execute()
+// which handles: confirmation prompts, includeIf conditions, mapParams,
+// rollback support, optional steps, and abort.
 const workflow = workflowRegistry.detectWorkflow(userMessage);
 
 if (workflow) {
-  // Execute pre-defined steps
-  for (const step of workflow.steps) {
-    await executeAbility(step.abilityId, step.params);
-  }
+  // WorkflowOrchestrator handles the full execution lifecycle:
+  // - Prompts for confirmation if requiresConfirmation is set
+  // - Evaluates includeIf conditions per step (may skip steps)
+  // - Resolves mapParams from previous step results
+  // - Tracks rollback stack for write operations
+  // - Marks optional steps as skipped on failure instead of aborting
+  // - Calls workflow.summarize() to build final user message
+  await workflowOrchestrator.execute(workflow.id, { userMessage });
 } else {
   // Fall back to ReAct loop
   await reactAgent.execute(userMessage);
@@ -218,14 +232,14 @@ if (workflow) {
 
 ### Workflow Examples
 
-**"full site cleanup"** → Rigid workflow:
-1. Flush cache
-2. Optimize database
-3. Check site health
+**"full site cleanup"** → Semi-flexible workflow:
+1. Flush cache (always runs)
+2. Optimize database (conditional `includeIf` -- skips if not needed, e.g., optimized recently or user did not mention database)
+3. Check site health (always runs)
 
-**"check site performance"** → Rigid workflow:
-1. Get site health info
-2. Read error log
+**"check site performance"** → Semi-flexible workflow:
+1. Get site health info (always runs)
+2. Read error log (optional, with `includeIf` condition -- only runs if debug mode is enabled or user mentioned errors)
 
 **"my site is slow"** → ReAct loop (adaptive):
 - AI decides what to check first
@@ -258,7 +272,7 @@ skills:
 ### WordPress Abilities (Chosen)
 
 ```php
-register_agentic_ability('db-optimize', [
+register_agentic_ability('wp-agentic-admin/db-optimize', [
     'label' => 'Optimize Database',
     'description' => 'Optimize database tables',
     'category' => 'sre-tools',
@@ -276,14 +290,14 @@ register_agentic_ability('db-optimize', [
 
 ## Small Model Optimizations
 
-WP-Agentic-Admin is optimized to work well with 1.5B-3B parameter models running locally.
+WP-Agentic-Admin is optimized to work well with 3B parameter models (Qwen2.5-3B, Llama-3.2-3B) running locally.
 
 ### Challenges with Small Models
 
 1. **JSON formatting** - Small models struggle with structured output
 2. **Over-eagerness** - Calling too many tools
 3. **Error recovery** - Poor handling of tool failures
-4. **Context limits** - 4096 tokens for Qwen 2.5 1.5B
+4. **Context limits** - 4096 tokens for Qwen2.5-3B (default context_window_size config is 2048, expanded to 4096 per model)
 
 ### Our Solutions
 
@@ -296,7 +310,7 @@ WP-Agentic-Admin is optimized to work well with 1.5B-3B parameter models running
 **2. Safety Mechanisms**
 - Repeated call detection (same tool twice = stop)
 - Max 10 iterations
-- Tool result truncation (1000 chars max)
+- Tool result truncation (1000 chars max in prompt-based JSON mode; function-calling mode passes full results). Additionally, the ChatOrchestrator truncates tool results to 1500 chars when building LLM summary prompts for conversational responses.
 - Context window overflow handling
 
 **3. Pre-filtering**
@@ -324,9 +338,10 @@ See inline `TODO Hackathon` comments in the codebase for details.
 
 ## Testing
 
-WP-Agentic-Admin includes comprehensive automated tests:
+WP-Agentic-Admin includes automated tests for core services:
 
-- Automated tests covering ReAct loop, message routing, and edge cases
+- `react-agent.test.js` - Tests for the ReAct loop, including function-calling and prompt-based modes, iteration limits, repeated call detection, and error handling
+- `message-router.test.js` - Tests for 3-way message routing (conversational, workflow, react)
 - Mocked LLM responses for deterministic testing
 - Real-world test cases based on manual testing findings
 
@@ -338,10 +353,10 @@ Run tests with `npm test` to verify functionality.
 
 The architecture will continue to evolve:
 
-**Current (v0.1.0):**
+**Current (v0.1.1):**
 - ReAct loop for adaptive execution
 - Workflow keyword detection for common patterns
-- Optimized for 1.5B-3B models
+- Optimized for 3B models (Qwen2.5-3B, Llama-3.2-3B)
 
 **Future Enhancements:**
 - Improved prompt engineering for smaller models
@@ -350,6 +365,51 @@ The architecture will continue to evolve:
 - Support for larger models (7B+) when available
 
 The goal is to make the AI **more reliable and helpful** while keeping it **local-first and privacy-preserving**.
+
+---
+
+## Codebase Overview
+
+### Service Modules
+
+The following service modules live in `src/extensions/services/` and `src/extensions/utils/`:
+
+- **ChatOrchestrator** (`chat-orchestrator.js`) - Main message coordinator. Routes messages via MessageRouter to conversational, workflow, or ReAct paths. Builds system prompts, manages LLM summary generation, and truncates tool results to 1500 chars for summary prompts.
+- **ChatSession** (`chat-session.js`) - Chat history management with `localStorage` persistence. Tracks messages, tool calls, and session metadata.
+- **StreamSimulator** (`stream-simulator.js`) - Typewriter-style text streaming for chat responses, providing a natural reading experience.
+- **ModelLoader** (`model-loader.js`) - WebLLM model management. Handles model download, loading, and inference. Uses a Service Worker (`sw.js`) for model persistence across page navigations.
+- **AIService** (`ai-service.js`) - Legacy keyword-based ability detection (fallback path when ReAct is not available).
+- **AbilitiesAPI** (`abilities-api.js`) - REST client for the WordPress Abilities API. Fetches registered abilities from the server.
+- **AgenticAbilitiesAPI** (`agentic-abilities-api.js`) - Public JavaScript registration API exposed as `wp.agenticAdmin.*`. Allows JS-side ability and workflow registration.
+- **ToolRegistry** (`tool-registry.js`) - JavaScript-side ability registration and keyword matching. Converts abilities to function-calling format for the LLM.
+- **WorkflowRegistry** (`workflow-registry.js`) - Workflow registration and keyword-based detection. Matches user messages to pre-defined workflows.
+- **WorkflowOrchestrator** (`workflow-orchestrator.js`) - Workflow execution engine with rollback support, `includeIf` conditional steps, `mapParams`, optional steps, confirmation prompts, and abort handling.
+- **MessageRouter** (`message-router.js`) - 3-way message routing: conversational (question detection via regex), workflow (keyword matching), and ReAct (default fallback).
+- **ReactAgent** (`react-agent.js`) - Core ReAct loop with dual-mode support (function-calling and prompt-based JSON). Handles observation tracking, confirmation, repeated-call detection, and error recovery.
+- **Logger** (`utils/logger.js`) - Centralized logging with configurable levels. Used across all services via `createLogger('ModuleName')`.
+
+### React UI Components
+
+The frontend is built with React (via `@wordpress/element`) in `src/extensions/`:
+
+- **App.jsx** - Root component with two tabs: **Chat** and **Abilities**
+- **ChatContainer.jsx** - Chat panel layout, manages message flow between ChatInput and MessageList
+- **ChatInput.jsx** - User input field with send button
+- **MessageList.jsx** - Scrollable message display area
+- **MessageItem.jsx** - Individual message rendering (user, assistant, tool results, confirmations)
+- **AbilityBrowser.jsx** - Abilities tab, lists all registered abilities and workflows
+- **WebGPUFallback.jsx** - Fallback UI shown when the browser does not support WebGPU
+- **ModelStatus.jsx** - Model loading progress indicator and status display
+
+### Settings System
+
+The PHP settings system is managed by `class-settings.php` (`includes/class-settings.php`):
+
+- **Model selection** - Choose which AI model to use (Phi-3.5-mini, Llama-3.2-1B, Llama-3.2-3B)
+- **Confirm destructive actions** - Toggle requiring user confirmation before executing destructive abilities (enabled by default)
+- **Max log lines** - Configure the maximum number of log lines to read at once (default: 100)
+
+Settings are stored as a single WordPress option (`wp_agentic_admin_settings`) and accessed via the `Settings` singleton.
 
 ---
 

@@ -72,9 +72,9 @@ export function registerDatabaseMaintenanceWorkflow() {
 			let summary = 'Database maintenance complete.\n\n';
 
 			// Database optimization results.
-			// The db-optimize ability returns: { success, tablesOptimized, tables: [] }
+			// The db-optimize ability returns: { success, tables_optimized, tables: [] }
 			if ( dbResult?.success && dbResult.result ) {
-				const { tablesOptimized = 0, tables = [] } = dbResult.result;
+				const { tables_optimized: tablesOptimized = 0, tables = [] } = dbResult.result;
 				summary += `✓ **Optimized ${ tablesOptimized } tables**\n`;
 
 				// Show some table names as proof of work.

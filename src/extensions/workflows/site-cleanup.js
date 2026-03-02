@@ -129,33 +129,33 @@ export function registerSiteCleanupWorkflow() {
 			// Cache flush results.
 			// The cache-flush ability returns: { success: bool, message: string }
 			if ( cacheResult?.success ) {
-				summary += `✓ * * Cache: * * ${
+				summary += `✓ **Cache:** ${
 					cacheResult.result?.message || 'Flushed successfully'
 				}\n`;
 			} else {
-				summary += `✗ * * Cache: * * Failed to flush\n`;
+				summary += `✗ **Cache:** Failed to flush\n`;
 			}
 
 			// Database optimization results.
 			// The db-optimize ability returns: { success: bool, tables_optimized: int, tables: string[] }
 			if ( dbResult?.success && dbResult.result ) {
 				const tablesCount = dbResult.result.tables_optimized || 0;
-				summary += `✓ * * Database: * * ${ tablesCount } tables optimized\n`;
+				summary += `✓ **Database:** ${ tablesCount } tables optimized\n`;
 			} else if ( dbResult?.skipped ) {
-				summary += `⊘ * * Database: * * Optimization skipped( not needed )\n`;
+				summary += `⊘ **Database:** Optimization skipped (not needed)\n`;
 			} else {
-				summary += `✗ * * Database: * * Optimization failed\n`;
+				summary += `✗ **Database:** Optimization failed\n`;
 			}
 
 			// Health check results.
 			// The site-health ability returns: { wordpress_version, php_version, mysql_version, ... }
 			if ( healthResult?.success && healthResult.result ) {
 				const h = healthResult.result;
-				summary += `✓ * * Health Check: * * WordPress ${ h.wordpress_version }, PHP ${ h.php_version }\n`;
+				summary += `✓ **Health Check:** WordPress ${ h.wordpress_version }, PHP ${ h.php_version }\n`;
 			}
 
 			// Always show overall success count so users know if everything worked.
-			summary += `\n * * Result: * * ${ successCount } / ${ results.length } steps completed successfully`;
+			summary += `\n**Result:** ${ successCount } / ${ results.length } steps completed successfully`;
 
 			return summary;
 		},

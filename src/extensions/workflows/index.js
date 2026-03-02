@@ -25,7 +25,7 @@
  * - Check `stepResult?.skipped` to see if step was skipped by includeIf conditions
  *
  * @since 0.1.0
- * @see docs/workflows-guide.md for complete documentation
+ * @see docs/WORKFLOWS-GUIDE.md for complete documentation
  */
 
 // Import all workflow registration functions
@@ -47,7 +47,7 @@ export { registerDatabaseMaintenanceWorkflow } from './database-maintenance';
  * Third-party plugins can register additional workflows using:
  *   wp.agenticAdmin.registerWorkflow('my-plugin/my-workflow', { ... })
  *
- * @see docs/workflows-guide.md for how to create custom workflows
+ * @see docs/WORKFLOWS-GUIDE.md for how to create custom workflows
  * @see docs/third-party-integration.md for integration examples
  */
 export function registerAllWorkflows() {

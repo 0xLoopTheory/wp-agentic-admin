@@ -42,8 +42,10 @@ Determine the operational characteristics:
 | Characteristic | Meaning | Affects |
 |----------------|---------|---------|
 | **readonly** | Doesn't modify data | HTTP method (GET vs POST) |
-| **destructive** | May cause data loss | Requires confirmation |
-| **idempotent** | Safe to call multiple times | Can retry on failure |
+| **destructive** | May cause data loss | HTTP method (DELETE), requires confirmation |
+| **idempotent** | Safe to call multiple times | Informational annotation only (does NOT affect HTTP method selection) |
+
+> **Note:** The `idempotent` annotation is purely informational metadata. It does not influence HTTP method selection or any runtime behavior in the current codebase. It may be used by external consumers or future features.
 
 **Examples:**
 - `plugin-list`: readonly ✓, destructive ✗, idempotent ✓
@@ -75,7 +77,7 @@ See the [Shared Helper Functions](#shared-helper-functions-best-practice) sectio
 ```
 wp-agentic-admin/
 ├── includes/
-│   ├── functions-abilities.php      # Public API: register_agentic_ability()
+│   ├── functions-abilities.php      # Public API: register/unregister/exists
 │   ├── class-abilities.php          # Loads ability files, fires registration hook
 │   └── abilities/                   # Individual PHP ability files
 │       ├── shared/                  # Shared helper functions (NEW)
@@ -181,14 +183,24 @@ function wp_agentic_admin_execute_my_new_ability( array $input = array() ): arra
 }
 ```
 
-### Step 2: Register in class-abilities.php
+### Step 2: Register the Ability
 
-Add a call in the `register_core_abilities()` method:
+**For core WP-Agentic-Admin abilities:** Add a call in the `register_core_abilities()` method in `class-abilities.php`:
 
 ```php
 if ( function_exists( 'wp_agentic_admin_register_my_new_ability' ) ) {
     wp_agentic_admin_register_my_new_ability();
 }
+```
+
+**For third-party plugins:** Use the `wp_agentic_admin_register_abilities` action hook instead of modifying `class-abilities.php` directly. This hook fires after all core abilities are registered:
+
+```php
+add_action( 'wp_agentic_admin_register_abilities', function() {
+    if ( function_exists( 'register_agentic_ability' ) ) {
+        wp_agentic_admin_register_my_new_ability();
+    }
+} );
 ```
 
 ### Step 3: Create the JavaScript File
@@ -306,14 +318,21 @@ Annotations control how the ability behaves:
 | `destructive` | bool | `true` = May cause data loss, requires confirmation |
 | `idempotent` | bool | `true` = Safe to call multiple times with same result |
 
+> **Naming difference:** The PHP side uses `readonly` in annotations, while the JS tool registry uses `isReadOnly`. The `abilities-api.js` `isReadOnly()` method checks **both** names for compatibility:
+> ```javascript
+> annotations.isReadOnly === true || annotations.readonly === true
+> ```
+> When writing PHP abilities, use `readonly`. When writing JS-only abilities or checking annotations in JS, either name works.
+
 ### HTTP Method Selection
 
-| readonly | destructive | idempotent | HTTP Method |
-|----------|-------------|------------|-------------|
-| `true` | - | - | GET |
-| `false` | `false` | - | POST |
-| `false` | `true` | `true` | DELETE |
-| `false` | `true` | `false` | POST |
+The `abilities-api.js` `getHttpMethod()` function uses only `readonly` and `destructive` to determine the HTTP method. The `idempotent` annotation is not consulted:
+
+| readonly | destructive | HTTP Method |
+|----------|-------------|-------------|
+| `true` | - | GET |
+| `false` | `true` | DELETE |
+| `false` | `false` | POST |
 
 ## Abilities with Required Input
 
@@ -398,11 +417,27 @@ label: 'Health'
 label: 'Cache'
 ```
 
+### Label Precedence
+
+Both PHP and JS can define a `label` for the same ability. When both exist, the **JS label takes precedence** because `buildToolConfig()` in `agentic-abilities-api.js` merges configs with JS overriding PHP:
+
+```javascript
+const merged = {
+    ...phpConfig,  // PHP values go first
+    ...jsConfig,   // JS values override PHP
+    id,
+};
+```
+
+The original PHP label is still available as `phpLabel` (set by `get_agentic_abilities_js_config()` in `functions-abilities.php`). This means:
+- `tool.label` -- the JS label (or PHP label if JS didn't provide one)
+- `tool.phpLabel` -- always the PHP-defined label, if one was registered
+
 ### Fallback Behavior
 
-If you don't provide a `label`, one is derived from the ability ID:
-- `my-plugin/user-list` → "user list"
-- `wp-agentic-admin/cache-flush` → "cache flush"
+If you don't provide a `label` in either PHP or JS, one is derived from the ability ID:
+- `my-plugin/user-list` -> "user list"
+- `wp-agentic-admin/cache-flush` -> "cache flush"
 
 This works but isn't as descriptive. Always provide an explicit `label` for best results.
 
@@ -448,11 +483,11 @@ registerAbility('my-plugin/list-items', {
     // ... other config ...
     
     summarize: (result, userMessage = '') => {
-        // Handle errors
-        if (result.error) {
-            return `Failed: ${result.error}`;
+        // Handle errors - PHP returns { success: false, message: '...' }
+        if (!result.success && result.message) {
+            return `Failed: ${result.message}`;
         }
-        
+
         // Basic formatted response
         return `Found **${result.total} items**:\n\n` +
             result.items.map(i => `- ${i.name}`).join('\n');
@@ -518,10 +553,93 @@ For abilities that modify or delete data:
 
 ### JavaScript
 
+Static confirmation (simple boolean and string):
+
 ```javascript
 requiresConfirmation: true,
 confirmationMessage: 'Are you sure? This action cannot be undone.',
 ```
+
+**Dynamic confirmation:** Both `requiresConfirmation` and `getConfirmationMessage` can also be **functions** that receive the parsed parameters. This allows conditional confirmation based on what the user requested.
+
+```javascript
+// requiresConfirmation as a function: (params) => boolean
+requiresConfirmation: (params) => {
+    // Only require confirmation for actual deletions, not previews
+    return !params.dry_run;
+},
+
+// getConfirmationMessage as a function: (params) => string
+getConfirmationMessage: (params) => {
+    const keepLast = params.keep_last || 3;
+    return `This will delete post revisions, keeping the ${keepLast} most recent per post. Proceed?`;
+},
+```
+
+When `requiresConfirmation` is a function, the `chat-orchestrator.js` calls it with the output of `parseIntent()` to decide at runtime whether to show the confirmation dialog. See `revision-cleanup.js` for a real-world example that combines `parseIntent`, dynamic `requiresConfirmation`, and `getConfirmationMessage`.
+
+## The `parseIntent` Function
+
+The `parseIntent` function is an optional property on an ability registration that allows the ability to parse the user's natural language message into structured parameters **before** execution. This is called by `chat-orchestrator.js` at the start of `processWithTool()`:
+
+```javascript
+const params = tool.parseIntent ? tool.parseIntent(userMessage) : {};
+```
+
+The returned params object is then passed to:
+1. `requiresConfirmation(params)` -- to decide if confirmation is needed
+2. `getConfirmationMessage(params)` -- to build a context-aware confirmation message
+3. `execute(params)` -- to execute the ability with structured input
+
+### When to Use `parseIntent`
+
+Use `parseIntent` when your ability needs to extract structured parameters from conversational input. Without `parseIntent`, the `execute` function receives only `{ userMessage }` and must do its own parsing.
+
+### Example
+
+From `revision-cleanup.js`:
+
+```javascript
+registerAbility('wp-agentic-admin/revision-cleanup', {
+    parseIntent: (message) => {
+        const lowerMessage = message.toLowerCase();
+
+        // Extract keep_last count from patterns like "keep 5 revisions"
+        let keepLast = 3; // Default
+        const keepMatch = lowerMessage.match(/keep\s*(?:last\s*)?(\d+)/);
+        if (keepMatch) {
+            keepLast = parseInt(keepMatch[1], 10);
+        }
+
+        // Check for "delete all" pattern
+        if (lowerMessage.includes('all revision') || lowerMessage.includes('delete all')) {
+            keepLast = 0;
+        }
+
+        // Check for dry run/preview
+        const dryRun = lowerMessage.includes('dry run') || lowerMessage.includes('preview');
+
+        return { keep_last: keepLast, dry_run: dryRun };
+    },
+
+    // params here comes from parseIntent
+    requiresConfirmation: (params) => !params.dry_run,
+
+    execute: async (params) => {
+        return executeAbility('wp-agentic-admin/revision-cleanup', {
+            keep_last: params.keep_last,
+            dry_run: params.dry_run,
+        });
+    },
+});
+```
+
+### Abilities Using `parseIntent`
+
+- `transient-flush.js` -- Detects whether to flush only expired or all transients
+- `revision-cleanup.js` -- Extracts `keep_last` count and dry-run mode
+- `core-site-info.js` -- Detects which site info fields the user is asking about
+- `core-environment-info.js` -- Returns empty params (no-op, but follows the pattern)
 
 ## Shared Helper Functions (Best Practice)
 
@@ -591,6 +709,7 @@ function wp_agentic_admin_get_all_plugins( string $status_filter = 'all' ): arra
             'name'    => $plugin_data['Name'],
             'slug'    => $plugin_file,
             'version' => $plugin_data['Version'],
+            'author'  => $plugin_data['Author'],
             'active'  => $is_active,
         );
     }
@@ -695,8 +814,9 @@ export function extractPluginParams(userMessage, actionKeywords = []) {
  * Format plugin action result for display.
  */
 export function formatPluginActionResult(result, defaultMessage) {
-    if (result.error) {
-        return `Failed: ${result.error}`;
+    // PHP error responses use { success: false, message: '...' }
+    if (result.success === false) {
+        return `Failed: ${result.message}`;
     }
     return result.message || defaultMessage;
 }
@@ -746,6 +866,90 @@ Use shared helpers when you have:
 - Similar parameter extraction patterns
 - Shared error handling
 - Common data formatting needs
+
+## Wrapping WordPress Core Abilities (`core/*`)
+
+WordPress 6.9+ ships with built-in abilities under the `core/*` namespace (e.g., `core/get-site-info`, `core/get-environment-info`). These are registered automatically by WordPress -- they have no PHP counterpart in `includes/abilities/`.
+
+To provide a chat interface for a core ability, create **only a JS file** that wraps the core ability:
+
+```javascript
+// src/extensions/abilities/core-site-info.js
+import { registerAbility, executeAbility } from '../services/agentic-abilities-api';
+
+export function registerCoreSiteInfo() {
+    registerAbility('core/get-site-info', {
+        label: 'Check site information (name, URL, version, etc.)',
+        keywords: ['site info', 'site name', 'wordpress version', 'site url'],
+        initialMessage: 'Fetching site information...',
+
+        parseIntent: (message) => {
+            // Parse which fields the user wants
+            const fields = [];
+            if (message.includes('version')) fields.push('version');
+            if (message.includes('name')) fields.push('name');
+            return { fields: fields.length > 0 ? fields : undefined };
+        },
+
+        summarize: (result) => {
+            return `**Site:** ${result.name}\n**URL:** ${result.url}\n**Version:** ${result.version}`;
+        },
+
+        execute: async (params) => {
+            return executeAbility('core/get-site-info', params);
+        },
+
+        requiresConfirmation: false,
+    });
+}
+```
+
+Key differences from regular abilities:
+- **No PHP file** in `includes/abilities/` -- WordPress core handles backend registration
+- **No entry in `class-abilities.php`** -- the ability already exists in the WP Abilities API
+- The ability ID uses the `core/` namespace (e.g., `core/get-site-info`), not `wp-agentic-admin/`
+- See `core-site-info.js` and `core-environment-info.js` for working examples
+
+## PHP API Reference
+
+All public PHP functions are defined in `functions-abilities.php`.
+
+### `register_agentic_ability( string $id, array $php_args, array $js_args = array() ): bool`
+
+Registers an ability with both the WordPress Abilities API (backend) and stores JS configuration for the frontend. See the [Creating a New Ability](#creating-a-new-ability) section for full usage.
+
+### `unregister_agentic_ability( string $id ): bool`
+
+Removes a previously registered ability. Returns `true` if the ability was unregistered, `false` if it did not exist. Also calls `wp_unregister_ability()` if the WordPress Abilities API is available.
+
+```php
+// Example: conditionally remove an ability
+if ( agentic_ability_exists( 'wp-agentic-admin/cache-flush' ) ) {
+    unregister_agentic_ability( 'wp-agentic-admin/cache-flush' );
+}
+```
+
+### `agentic_ability_exists( string $id ): bool`
+
+Checks whether an ability with the given ID is currently registered. Useful for guard checks before registering or unregistering.
+
+```php
+if ( ! agentic_ability_exists( 'my-plugin/my-ability' ) ) {
+    register_agentic_ability( 'my-plugin/my-ability', $php_args, $js_args );
+}
+```
+
+### `get_agentic_abilities(): array`
+
+Returns all registered abilities as an associative array keyed by ability ID.
+
+### `get_agentic_ability( string $id ): ?array`
+
+Returns the configuration for a single ability, or `null` if not found.
+
+### `get_agentic_abilities_js_config(): array`
+
+Returns JS-facing configurations for all abilities. Used internally by `wp_localize_script()` to pass ability metadata to the frontend. Includes `phpLabel`, `description`, and `annotations` from the PHP config.
 
 ## Testing Your Ability
 

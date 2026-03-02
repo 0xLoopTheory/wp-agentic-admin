@@ -102,20 +102,29 @@ function wp_agentic_admin_execute_error_log_read( array $input = array() ): arra
 		);
 	}
 
-	// Read the last N lines from the file.
-	$entries = array();
+	// Read the last N lines efficiently without loading the entire file into memory.
+	// Uses SplFileObject to seek from the end, safe for multi-hundred-MB debug.log files.
+	$file        = new \SplFileObject( $log_file, 'r' );
+	$file->seek( PHP_INT_MAX );
+	$total_lines = $file->key();
 
-	// phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-	$content     = file_get_contents( $log_file );
-	$all_lines   = explode( "\n", $content );
-	$total_lines = count( $all_lines );
+	// Collect last N non-empty lines by reading backwards from end.
+	$entries  = array();
+	$line_num = max( 0, $total_lines - 1 );
 
-	// Get last N non-empty lines.
-	$all_lines = array_filter( $all_lines, 'strlen' );
-	$entries   = array_slice( $all_lines, -$lines );
+	while ( count( $entries ) < $lines && $line_num >= 0 ) {
+		$file->seek( $line_num );
+		$line = rtrim( $file->current(), "\r\n" );
+
+		if ( '' !== $line ) {
+			array_unshift( $entries, $line );
+		}
+
+		--$line_num;
+	}
 
 	return array(
-		'entries'       => array_values( $entries ),
+		'entries'       => $entries,
 		'total_lines'   => $total_lines,
 		'file_exists'   => true,
 		'debug_enabled' => defined( 'WP_DEBUG' ) && WP_DEBUG && defined( 'WP_DEBUG_LOG' ) && WP_DEBUG_LOG,

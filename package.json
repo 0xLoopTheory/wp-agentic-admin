@@ -1,6 +1,6 @@
 {
   "name": "wp-agentic-admin",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A privacy-first AI Site Reliability Engineer running entirely in the browser via WebLLM and the WordPress Abilities API.",
   "scripts": {
     "build": "npm run build:extensions",

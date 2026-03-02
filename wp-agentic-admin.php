@@ -11,7 +11,7 @@
  * Plugin Name: WP Agentic Admin
  * Plugin URI: https://pluginslab.com/wp-agentic-admin
  * Description: A privacy-first AI Site Reliability Engineer running entirely in the browser. Uses WebAssembly and WebGPU to execute Small Language Models locally, transforming WP-Admin into a natural language command center via the WordPress Abilities API.
- * Version: 0.1.1
+ * Version: 0.2.0
  * Author: Pluginslab
  * Author URI: https://pluginslab.com
  * License: GPL-2.0-or-later
@@ -138,7 +138,7 @@ if ( ! class_exists( 'WPAgenticAdmin' ) ) {
 		 * @return void
 		 */
 		private function define_constants(): void {
-			define( 'WP_AGENTIC_ADMIN_VERSION', '0.1.1' );
+			define( 'WP_AGENTIC_ADMIN_VERSION', '0.2.0' );
 			define( 'WP_AGENTIC_ADMIN_FILE', __FILE__ );
 			define( 'WP_AGENTIC_ADMIN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 			define( 'WP_AGENTIC_ADMIN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -162,10 +162,7 @@ if ( ! class_exists( 'WPAgenticAdmin' ) ) {
 		 * Activation hook
 		 */
 		public static function activate(): void {
-			// Migrate old options if they exist.
-			self::migrate_from_agentic_to_agentic();
-
-			update_option( 'wp_agentic_admin_version', '0.1.1' );
+			update_option( 'wp_agentic_admin_version', '0.2.0' );
 			flush_rewrite_rules();
 		}
 
@@ -175,37 +172,6 @@ if ( ! class_exists( 'WPAgenticAdmin' ) ) {
 		public static function deactivate(): void {
 			delete_transient( 'wp_agentic_admin_cache' );
 			flush_rewrite_rules();
-		}
-
-		/**
-		 * Migrate old options from WP Agentic Admin to WP Agentic Admin.
-		 *
-		 * @since 2.0.0
-		 * @return void
-		 */
-		private static function migrate_from_agentic_to_agentic(): void {
-			// Migrate settings.
-			$old_settings = get_option( 'wp_agentic_admin_settings' );
-			if ( $old_settings && ! get_option( 'wp_agentic_admin_settings' ) ) {
-				update_option( 'wp_agentic_admin_settings', $old_settings );
-			}
-
-			// Migrate version.
-			$old_version = get_option( 'wp_agentic_admin_version' );
-			if ( $old_version && ! get_option( 'wp_agentic_admin_version' ) ) {
-				update_option( 'wp_agentic_admin_version', $old_version );
-			}
-
-			// Migrate transients.
-			$old_cache = get_transient( 'wp_agentic_admin_cache' );
-			if ( $old_cache && ! get_transient( 'wp_agentic_admin_cache' ) ) {
-				set_transient( 'wp_agentic_admin_cache', $old_cache, DAY_IN_SECONDS );
-			}
-
-			$old_post_types = get_transient( 'wp_agentic_admin_post_types' );
-			if ( $old_post_types && ! get_transient( 'wp_agentic_admin_post_types' ) ) {
-				set_transient( 'wp_agentic_admin_post_types', $old_post_types, DAY_IN_SECONDS );
-			}
 		}
 	}
 

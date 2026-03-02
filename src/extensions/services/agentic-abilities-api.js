@@ -24,12 +24,6 @@ import abilitiesApi from './abilities-api';
 import workflowRegistry from './workflow-registry';
 
 /**
- * Store for ability configurations that need JS-specific handlers.
- * This merges with PHP-provided config from wpAgenticAdmin.abilities.
- */
-const abilityExtensions = new Map();
-
-/**
  * Register a agentic ability with the chat system.
  *
  * This function allows third-party plugins to register their own abilities.
@@ -63,9 +57,6 @@ function registerAbility( id, config = {} ) {
 		return false;
 	}
 
-	// Store the extension config
-	abilityExtensions.set( id, config );
-
 	// Build the full tool config
 	const toolConfig = buildToolConfig( id, config );
 
@@ -84,7 +75,6 @@ function registerAbility( id, config = {} ) {
  */
 function unregisterAbility( id ) {
 	const removed = toolRegistry.unregister( id );
-	abilityExtensions.delete( id );
 
 	if ( removed ) {
 		console.log( `[AgenticAbilitiesAPI] Unregistered ability: ${ id }` );
@@ -194,25 +184,6 @@ function buildToolConfig( id, jsConfig ) {
 	}
 
 	return merged;
-}
-
-/**
- * Initialize abilities from PHP configuration.
- *
- * Called during script initialization to register abilities
- * that were defined in PHP and passed via wp_localize_script.
- */
-function initializeFromPHPConfig() {
-	const phpAbilities = window.wpAgenticAdmin?.abilities || {};
-
-	console.log(
-		'[AgenticAbilitiesAPI] Initializing from PHP config:',
-		Object.keys( phpAbilities )
-	);
-
-	// These will be registered by individual JS ability files
-	// that call registerAbility() with their specific handlers.
-	// This function just logs what's available from PHP.
 }
 
 // ============================================================================
@@ -427,7 +398,6 @@ export {
 	hasAbility,
 	executeAbility,
 	buildToolConfig,
-	initializeFromPHPConfig,
 	exposeGlobalAPI,
 	// Workflows API (v1.1)
 	registerWorkflow,

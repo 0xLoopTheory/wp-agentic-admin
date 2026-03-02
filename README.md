@@ -16,11 +16,11 @@ The AI assistant will:
 3. Propose a fix
 4. Execute it with your approval
 
-All of this happens **locally in your browser** - no data is sent to external servers, no API costs, complete privacy.
+All of this happens **locally in your browser** - no data is sent to third-party AI services, no API costs, complete privacy.
 
 ## Key Features
 
-- **100% Local AI**: Uses WebLLM to run a Small Language Model (Qwen2.5-1.5B to 3B) directly in your browser via WebGPU
+- **100% Local AI**: Uses WebLLM to run a Small Language Model (Qwen2.5-3B or Llama-3.2-3B) directly in your browser via WebGPU
 - **Privacy-First**: No admin data ever leaves your device - GDPR compliant by design
 - **Zero Server Costs**: No GPU infrastructure needed - computation happens on the client
 - **Persistent AI**: Model stays loaded across page navigations using Service Worker technology
@@ -40,7 +40,7 @@ WP-Agentic-Admin uses a **ReAct (Reasoning + Acting) pattern** where the AI deci
 │                   Your Browser                               │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │              Local AI (WebLLM)                         │  │
-│  │      Qwen2.5 (1.5B-3B) via WebGPU/WASM                │  │
+│  │      Qwen2.5-3B / Llama-3.2-3B via WebGPU/WASM         │  │
 │  │                                                         │  │
 │  │  ReAct Loop: LLM decides tools based on observations  │  │
 │  └───────────────────────────────────────────────────────┘  │
@@ -58,10 +58,10 @@ WP-Agentic-Admin uses a **ReAct (Reasoning + Acting) pattern** where the AI deci
 ┌─────────────────────────────────────────────────────────────┐
 │                 WordPress Server                             │
 │  ┌───────────────────────────────────────────────────────┐  │
-│  │            Registered SRE Abilities                    │  │
+│  │            Registered SRE Abilities (14 total)          │  │
 │  │  - Error log reading    - Plugin management            │  │
 │  │  - Cache management     - Site health diagnostics      │  │
-│  │  - Database optimization                               │  │
+│  │  - Database optimization - Cron/rewrite/transient mgmt │  │
 │  └───────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -88,8 +88,8 @@ The AI decides **one action at a time**, observing results and adapting its stra
 
 For complex multi-step operations, pre-defined workflows can be triggered via keywords:
 
-- "full site cleanup" → Executes: cache-flush → db-optimize → site-health
-- "check site performance" → Executes: site-health → error-log-read
+- "full cleanup" / "site cleanup" / "maintenance" → Executes: cache-flush → db-optimize (conditional) → site-health
+- "performance check" / "health check" / "check site" → Executes: site-health → error-log-read (conditional)
 
 Otherwise, the ReAct loop handles everything dynamically.
 
@@ -98,12 +98,13 @@ Otherwise, the ReAct loop handles everything dynamically.
 - WordPress 6.9+ (includes the Abilities API)
 - PHP 8.2+
 - Modern browser with WebGPU support (Chrome 113+, Edge 113+)
+- Pretty permalinks enabled (required for REST API)
 
 ## Installation
 
 1. Download and install WP-Agentic-Admin
 2. Navigate to "Agentic Admin" in your WordPress admin menu
-3. Wait for the AI model to download (one-time, ~1.6GB for Qwen2.5-1.5B)
+3. Wait for the AI model to download (one-time, ~2.5GB for Qwen2.5-3B)
 4. Start chatting!
 
 ## Persistent AI Mode
@@ -120,7 +121,7 @@ WP-Agentic-Admin uses **Service Worker technology** to keep the AI model loaded 
 ### How It Works
 
 When you first load Agentic Admin in Chrome or Edge:
-1. The model downloads to browser cache (~1.6GB, one-time)
+1. The model downloads to browser cache (~2.5GB, one-time)
 2. A Service Worker registers and loads the model into GPU memory
 3. The model stays loaded as long as you have a Agentic Admin tab open
 4. Navigate away and back - the model is still there!
@@ -142,7 +143,7 @@ When Service Worker mode is active, you'll see a **"Persistent"** badge in the m
 
 ## Available Abilities
 
-**Current Status:** 12 abilities, 4 workflows
+**Current Status:** 14 abilities, 4 workflows
 
 | Ability | Description | Type |
 |---------|-------------|------|
@@ -158,13 +159,15 @@ When Service Worker mode is active, you'll see a **"Persistent"** badge in the m
 | `plugin-list` | List all installed plugins with status | Read-only |
 | `plugin-activate` | Activate a specific plugin | Write |
 | `plugin-deactivate` | Deactivate a specific plugin | Write (destructive) |
+| `core/get-site-info` | Get WordPress site name, URL, version, and language | Read-only |
+| `core/get-environment-info` | Get PHP version, database server, environment type | Read-only |
 
 ### Workflows
 
 | Workflow | Steps | Purpose |
 |----------|-------|---------|
-| `site-cleanup` | Cache flush → DB optimize → Site health | Full maintenance routine |
-| `performance-check` | Site health → Error log | Quick diagnostic |
+| `site-cleanup` | Cache flush → DB optimize (conditional) → Site health | Full maintenance routine |
+| `performance-check` | Site health → Error log (conditional) | Quick diagnostic |
 | `plugin-audit` | Plugin list → Site health | Review installed plugins |
 | `database-maintenance` | DB optimize → Cache flush | Database optimization |
 
@@ -230,17 +233,25 @@ AI: [Executing: site-health]
 ```
 wp-agentic-admin/
 ├── wp-agentic-admin.php              # Main plugin file
+├── uninstall.php                     # Clean uninstall (multisite-aware)
 ├── includes/
 │   ├── functions-abilities.php      # Public API: register_agentic_ability()
 │   ├── class-abilities.php          # Ability registration orchestrator
 │   ├── class-admin-page.php         # Admin page & assets
+│   ├── class-settings.php           # Plugin settings (model selection, etc.)
+│   ├── class-utils.php              # Utility helpers (cache invalidation, etc.)
 │   └── abilities/                   # Individual PHP ability files
+│       └── shared/                  # Shared helpers (plugin-helpers.php)
 ├── src/extensions/
-│   ├── App.jsx                      # Main React app
+│   ├── App.jsx                      # Main React app (Chat + Abilities tabs)
+│   ├── sw.js                        # Service Worker for model persistence
+│   ├── index.js                     # Entry point
 │   ├── abilities/                   # Individual JS ability files
+│   ├── workflows/                   # Workflow definitions (site-cleanup, etc.)
 │   ├── components/                  # React UI components
 │   ├── services/                    # Core services (ReAct agent, orchestrator, etc.)
-│   └── __tests__/                   # Automated tests
+│   │   └── __tests__/              # Automated tests
+│   └── utils/                       # Logging utilities
 ├── build-extensions/                # Compiled assets
 └── docs/                            # Documentation
 ```
@@ -267,7 +278,7 @@ npm run test:watch          # Watch mode
 
 **Client-Side:**
 - Runtime: WebAssembly & WebGPU
-- AI: WebLLM with Qwen2.5 (1.5B-3B models)
+- AI: WebLLM with Qwen2.5-3B / Llama-3.2-3B
 - UI: React
 - Chat: ReAct loop with adaptive tool selection
 - Persistence: Service Worker mode keeps model loaded across navigation
@@ -278,8 +289,8 @@ npm run test:watch          # Watch mode
 
 ## Privacy & Security
 
-- **No External API Calls**: The AI model runs entirely in your browser
-- **No Data Collection**: Your site data never leaves your device
+- **No Third-Party AI Services**: The AI model runs entirely in your browser - no data is sent to external AI providers
+- **No Data Collection**: Your site data stays between your browser and your WordPress server
 - **Permission-Based**: All abilities respect WordPress capabilities
 - **Confirmation Required**: Destructive actions require explicit approval
 
@@ -289,7 +300,7 @@ WP Agentic Admin aims to make WordPress site management accessible through natur
 
 1. **Privacy-First AI** - No external APIs, no data collection, fully local execution
 2. **Extensible Architecture** - Third-party plugins can add custom abilities via the WordPress Abilities API
-3. **Smart Reasoning** - Semantic translation layer to bridge natural language with technical operations
+3. **Smart Reasoning** - ReAct loop to bridge natural language with technical operations
 4. **Community-Driven** - Open development with transparent roadmap and contributor recognition
 
 See [IDEAS.md](IDEAS.md) for our feature roadmap and future plans.
@@ -324,7 +335,7 @@ We welcome contributions from developers, designers, testers, and documentation 
 
 ### Quick Contribution Guidelines
 
-- **Branch from `develop`** - All PRs should target the `develop` branch
+- **Branch from `main`** - All PRs should target the `main` branch
 - **Follow WordPress Coding Standards** - We use WordPress PHP and JavaScript standards
 - **Write tests** - New abilities should include tests when applicable
 - **Document your changes** - Update relevant documentation
@@ -347,5 +358,4 @@ GPL-2.0-or-later
 
 - WordPress AI Team for the [Abilities API](https://github.com/WordPress/abilities-api)
 - [WebLLM](https://github.com/mlc-ai/web-llm) for browser-based LLM inference
-- [Transformers.js](https://github.com/xenova/transformers.js) for semantic translation capabilities
 - CloudFest Hackathon 2026 for the initial development sprint

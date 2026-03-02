@@ -7,7 +7,7 @@
 
 /**
  * @typedef {Object} ToolAnnotations
- * @property {boolean} [isReadOnly]  - Whether the tool only reads data (default: true)
+ * @property {boolean} [readonly]    - Whether the tool only reads data (default: true)
  * @property {boolean} [destructive] - Whether the tool may cause data loss (default: false)
  * @property {boolean} [idempotent]  - Whether the tool is safe to repeat (default: true)
  */
@@ -69,7 +69,7 @@ class ToolRegistry {
 			keywords: tool.keywords.map( ( k ) => k.toLowerCase() ),
 			// Merge annotations with defaults
 			annotations: {
-				isReadOnly: true,
+				readonly: true,
 				destructive: false,
 				idempotent: true,
 				...( tool.annotations || {} ),

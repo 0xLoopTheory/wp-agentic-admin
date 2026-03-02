@@ -62,7 +62,7 @@ function my_plugin_execute_ability( array $input = array() ): array {
 
 ### JavaScript: Register the Frontend
 
-Enqueue your script with `wp-agentic-admin-extensions` as a dependency:
+Enqueue your script with `wp-agentic-admin` as a dependency:
 
 ```php
 add_action( 'admin_enqueue_scripts', function( $hook ) {
@@ -73,7 +73,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
     wp_enqueue_script(
         'my-plugin-agentic-abilities',
         plugins_url( 'assets/js/agentic-abilities.js', __FILE__ ),
-        array( 'wp-agentic-admin-extensions' ),
+        array( 'wp-agentic-admin' ),
         '1.0.0',
         true
     );
@@ -164,6 +164,48 @@ array(
 )
 ```
 
+> **Auto-forwarded PHP values:** The `get_agentic_abilities_js_config()` function automatically forwards the PHP config's `label` and `description` values to the JavaScript frontend as `phpLabel` and `description` keys respectively. This means you do not need to duplicate label/description information in your JS config -- simply set them in the PHP config and they will be available on the JS side automatically.
+
+#### `unregister_agentic_ability( string $id ): bool`
+
+Removes a previously registered ability. Returns `true` if the ability was found and removed, `false` if it did not exist.
+
+```php
+$removed = unregister_agentic_ability( 'my-plugin/my-ability' );
+```
+
+#### `get_agentic_abilities(): array`
+
+Returns all registered abilities as an associative array keyed by ability ID. Each entry contains `id`, `php` (PHP config), and `js` (JS config) keys.
+
+```php
+$all_abilities = get_agentic_abilities();
+foreach ( $all_abilities as $id => $ability ) {
+    echo $ability['php']['label'];
+}
+```
+
+#### `get_agentic_ability( string $id ): ?array`
+
+Returns the configuration for a specific ability, or `null` if not found.
+
+```php
+$ability = get_agentic_ability( 'my-plugin/my-ability' );
+if ( $ability ) {
+    echo $ability['php']['label'];
+}
+```
+
+#### `agentic_ability_exists( string $id ): bool`
+
+Checks if an ability with the given ID is registered.
+
+```php
+if ( agentic_ability_exists( 'my-plugin/my-ability' ) ) {
+    // Ability is registered
+}
+```
+
 ### JavaScript API
 
 The public API is available at `wp.agenticAdmin`:
@@ -179,6 +221,7 @@ wp.agenticAdmin.registerAbility('my-plugin/my-ability', {
     initialMessage: 'Processing...',
     summarize: (result, userMessage) => 'Summary text',
     execute: async (params) => { /* return result */ },
+    extractParams: (userMessage) => { /* return structured params */ },
     requiresConfirmation: false,
     confirmationMessage: 'Are you sure?',
 });
@@ -192,6 +235,8 @@ wp.agenticAdmin.registerAbility('my-plugin/my-ability', {
 > - Error scenarios where graceful degradation is needed
 >
 > You should still implement `summarize()` for all abilities to ensure a good user experience in all scenarios.
+
+> **Note on `extractParams()`:** The optional `extractParams` function receives the user's natural language message and returns a structured parameters object. This is useful when your ability needs to parse specific values (e.g., plugin slugs, post IDs) from the user's message before execution. See the built-in `plugin-activate.js` and `plugin-deactivate.js` abilities for real-world examples.
 
 #### `wp.agenticAdmin.executeAbility( id, input )`
 
@@ -268,7 +313,7 @@ wp.agenticAdmin.registerWorkflow('my-plugin/my-workflow', {
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `label` | string | Yes | Human-readable workflow name |
-| `description` | string | Yes | What the workflow does |
+| `description` | string | No | What the workflow does |
 | `steps` | array | Yes | Array of step definitions |
 | `keywords` | string[] | No | Trigger words for detection |
 | `requiresConfirmation` | boolean | No | Show confirmation dialog (default: true) |
@@ -286,6 +331,7 @@ wp.agenticAdmin.registerWorkflow('my-plugin/my-workflow', {
 | `mapParams` | function | No | Transform previous results to params |
 | `rollback` | function | No | Undo if later step fails |
 | `optional` | boolean | No | Continue if step fails (default: false) |
+| `requiresConfirmation` | boolean | No | Show confirmation before this specific step executes (default: false) |
 | `includeIf` | function\|object | No | ✨ **v1.4.1:** Condition to determine if step should execute (see [Semi-Flexible Workflows](#semi-flexible-workflows-v141)) |
 
 #### `wp.agenticAdmin.unregisterWorkflow( id )`
@@ -451,6 +497,29 @@ Available context variables are auto-extracted from previous step results:
 
 > **See Also:** For detailed includeIf examples and best practices, see [Workflows Guide - Semi-Flexible Workflows](./WORKFLOWS-GUIDE.md#semi-flexible-workflows).
 
+## Filters
+
+### `wp_agentic_admin_supported_post_types`
+
+This filter (defined in `class-utils.php`) allows third-party plugins to modify the list of post types that support the block editor. The value is an array of arrays, each with `value` (post type slug) and `label` (human-readable name) keys.
+
+```php
+add_filter( 'wp_agentic_admin_supported_post_types', function( $post_types ) {
+    // Add a custom post type
+    $post_types[] = array(
+        'value' => 'my_custom_type',
+        'label' => 'My Custom Type',
+    );
+
+    // Or remove one
+    $post_types = array_filter( $post_types, function( $pt ) {
+        return $pt['value'] !== 'attachment';
+    });
+
+    return $post_types;
+});
+```
+
 ## Input Schema Best Practices
 
 ### Always Include a Default
@@ -587,12 +656,15 @@ wp.agenticAdmin.registerAbility('my-plugin/search', {
 
 The HTTP method is determined by annotations:
 
-| readonly | destructive | idempotent | Method |
-|----------|-------------|------------|--------|
-| `true` | - | - | GET |
-| `false` | `false` | - | POST |
-| `false` | `true` | `true` | DELETE |
-| `false` | `true` | `false` | POST |
+| readonly | destructive | Method |
+|----------|-------------|--------|
+| `true` | - | GET |
+| `false` | `false` | POST |
+| `false` | `true` | DELETE |
+
+> **Note:** The `idempotent` annotation is stored as metadata but is **informational only** -- it does not affect HTTP method selection. The actual logic in `abilities-api.js` is: `readonly` = GET, `destructive` = DELETE, everything else = POST.
+
+> **Naming convention:** The PHP side uses `readonly` while the JavaScript side uses `isReadOnly`. The `abilities-api.js` checks both for compatibility: `annotations.isReadOnly === true || annotations.readonly === true`. You can use either name in your annotations and it will work correctly.
 
 ## Confirmation Dialogs
 
@@ -695,7 +767,7 @@ add_action( 'admin_enqueue_scripts', function( $hook ) {
     wp_enqueue_script(
         'my-plugin-agentic',
         plugins_url( 'agentic.js', __FILE__ ),
-        array( 'wp-agentic-admin-extensions' ),
+        array( 'wp-agentic-admin' ),
         '1.0.0',
         true
     );
@@ -758,4 +830,4 @@ Use the Abilities tab in Agentic Admin to test your ability's REST endpoint dire
 1. **"input is not of type object"** - Add `'default' => array()` to your input_schema
 2. **Ability not triggering** - Check keywords match user input
 3. **Permission denied** - Verify permission_callback returns true for current user
-4. **Script not loading** - Ensure dependency on `wp-agentic-admin-extensions`
+4. **Script not loading** - Ensure dependency on `wp-agentic-admin`
