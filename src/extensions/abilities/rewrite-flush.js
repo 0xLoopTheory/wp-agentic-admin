@@ -45,6 +45,8 @@ import {
 export function registerRewriteFlush() {
 	registerAbility( 'wp-agentic-admin/rewrite-flush', {
 		label: 'Flush rewrite rules',
+		description:
+			'Regenerate WordPress rewrite rules (permalinks). Fixes 404 errors caused by stale URL routing. Returns the new permalink structure.',
 
 		keywords: [
 			'flush rewrite',
@@ -78,6 +80,23 @@ export function registerRewriteFlush() {
 				'\n\nThis can fix 404 errors on posts/pages after changing permalink settings or installing new plugins that register custom post types.';
 
 			return summary;
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result.success ) {
+				return `Rewrite rules flush failed: ${ result.message || 'unknown error' }.`;
+			}
+			let text = 'Rewrite rules were flushed and regenerated successfully.';
+			if ( result.permalink_structure ) {
+				text += ` Current permalink structure: ${ result.permalink_structure }.`;
+			}
+			return text;
 		},
 
 		/**

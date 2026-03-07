@@ -47,6 +47,8 @@ import {
 export function registerRevisionCleanup() {
 	registerAbility( 'wp-agentic-admin/revision-cleanup', {
 		label: 'Clean up revisions',
+		description:
+			'Delete old post revisions to free database space. Dry-runs first showing revision count and space savings, then requires confirmation.',
 
 		keywords: [
 			'revision',
@@ -81,6 +83,31 @@ export function registerRevisionCleanup() {
 			}
 
 			return summary;
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result.success ) {
+				return `Revision cleanup failed: ${ result.message || 'unknown error' }.`;
+			}
+			if ( result.dry_run ) {
+				const wouldDelete = result.deleted_count || 0;
+				const total = result.total_revisions || 0;
+				if ( wouldDelete === 0 ) {
+					return `Dry run completed. Found ${ total } total revisions but none would be deleted with current settings.`;
+				}
+				return `Dry run completed. Would delete ${ wouldDelete } out of ${ total } revisions. No changes were made.`;
+			}
+			const deleted = result.deleted_count || 0;
+			if ( deleted === 0 ) {
+				return 'No revisions were found to delete. The database is already clean.';
+			}
+			return `Successfully deleted ${ deleted } revisions.${ result.space_saved ? ` Freed ${ result.space_saved } of space.` : '' }`;
 		},
 
 		/**

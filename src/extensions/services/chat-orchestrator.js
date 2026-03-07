@@ -183,10 +183,9 @@ class ChatOrchestrator {
 	 * Process a user message
 	 * This is the main entry point for handling user input
 	 *
-	 * New routing logic (v1.5.0):
-	 * 1. Check if it's an informational question → conversational mode
-	 * 2. Check for workflow keyword match → workflow mode
-	 * 3. Default to ReAct loop for actions
+	 * Routing logic:
+	 * 1. Check for workflow keyword match → workflow mode
+	 * 2. Default to ReAct loop for everything else (actions AND questions)
 	 *
 	 * @param {string} userMessage - The user's message
 	 * @return {Promise<Object>} Result with success status and any errors
@@ -212,13 +211,6 @@ class ChatOrchestrator {
 
 			// Route the message
 			const route = this.messageRouter.route( userMessage );
-
-			if ( route.type === 'conversational' ) {
-				log.info(
-					'Routing to conversational mode (informational question)'
-				);
-				return await this.processWithLLM( userMessage );
-			}
 
 			if ( route.type === 'workflow' ) {
 				log.info( 'Routing to workflow:', route.workflow.id );
@@ -557,6 +549,7 @@ Explain what went wrong and suggest what the user might try next.`;
 		// Stream from LLM
 		this.callbacks.onStreamStart();
 		let fullResponse = '';
+		let inThinkBlock = false; // Track <think> blocks to suppress them from UI
 
 		try {
 			const stream = await engine.chat.completions.create( {
@@ -575,16 +568,40 @@ Explain what went wrong and suggest what the user might try next.`;
 
 				const delta = chunk.choices[ 0 ]?.delta?.content || '';
 				fullResponse += delta;
-				this.callbacks.onStreamChunk( delta, fullResponse );
+
+				// Suppress <think> blocks from streaming to the UI.
+				// Qwen 3 outputs <think>...</think> before the actual response.
+				if ( fullResponse.includes( '<think>' ) && ! fullResponse.includes( '</think>' ) ) {
+					inThinkBlock = true;
+				}
+				if ( inThinkBlock && fullResponse.includes( '</think>' ) ) {
+					inThinkBlock = false;
+					// Strip think block and stream the clean content so far
+					const cleanResponse = fullResponse
+						.replace( /<think>[\s\S]*?<\/think>\s*/g, '' )
+						.trim();
+					this.callbacks.onStreamChunk( '', cleanResponse );
+					continue;
+				}
+
+				if ( ! inThinkBlock ) {
+					this.callbacks.onStreamChunk( delta, fullResponse );
+				}
 
 				// Capture usage stats from the final chunk
 				if ( chunk.usage ) {
-					console.log(
-						'[ChatOrchestrator] Got usage stats:',
-						chunk.usage
-					);
+					log.debug( 'Usage stats:', chunk.usage );
 					modelLoader.updateUsageStats( chunk.usage );
 				}
+			}
+
+			// Strip any remaining think blocks from the final response
+			fullResponse = fullResponse
+				.replace( /<think>[\s\S]*?<\/think>\s*/g, '' )
+				.trim();
+			// Handle incomplete think block (model ran out of tokens)
+			if ( fullResponse.startsWith( '<think>' ) ) {
+				fullResponse = '';
 			}
 
 			// Detect and filter hallucinated tool results

@@ -39,6 +39,8 @@ import {
 export function registerErrorLogRead() {
 	registerAbility( 'wp-agentic-admin/error-log-read', {
 		label: 'Read error logs',
+		description:
+			'Read the PHP error log (debug.log). Returns error entries, debug logging status, and file existence. Use for errors, crashes, white screens, or debug mode questions.',
 
 		// Keywords cover both technical terms and user-language descriptions.
 		// Users often describe symptoms ("white screen", "not working") rather
@@ -111,6 +113,30 @@ export function registerErrorLogRead() {
 
 			// State 4b: File exists, logging enabled, but no errors.
 			return 'No errors found in the error log. Your site looks healthy!';
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * Helps the model correctly interpret empty or negative results
+		 * instead of hallucinating errors that don't exist.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result.file_exists ) {
+				return 'No errors were found. The debug.log file does not exist, which means no PHP errors have been recorded on this site.';
+			}
+			if ( ! result.debug_enabled ) {
+				return 'Debug logging is currently disabled. No errors are being recorded. The debug.log file exists but may contain old data.';
+			}
+			if ( ! result.entries || result.entries.length === 0 ) {
+				return 'No errors were found. The debug.log file exists and logging is enabled, but the log is empty. The site appears to be running without errors.';
+			}
+			const count = result.entries.length;
+			const total = result.total_lines || count;
+			return `Found ${ count } error entries (out of ${ total } total lines in the log). Errors are present and should be reviewed.`;
 		},
 
 		/**

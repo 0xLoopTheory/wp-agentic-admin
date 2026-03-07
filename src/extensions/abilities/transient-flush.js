@@ -45,6 +45,8 @@ import {
 export function registerTransientFlush() {
 	registerAbility( 'wp-agentic-admin/transient-flush', {
 		label: 'Flush transients',
+		description:
+			'Delete expired transients from the WordPress database. Transients are temporary cached data used by plugins and themes. Returns the number of transients deleted.',
 
 		keywords: [
 			'transient',
@@ -77,6 +79,25 @@ export function registerTransientFlush() {
 			}
 
 			return `${ result.message } This helps keep your database clean and can improve performance.`;
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result.success ) {
+				return `Transient flush failed: ${ result.message || 'unknown error' }.`;
+			}
+			const count = result.deleted_count || 0;
+			if ( count === 0 ) {
+				return result.expired_only
+					? 'No expired transients were found. The database is already clean.'
+					: 'No transients were found to delete.';
+			}
+			return `Successfully deleted ${ count } ${ result.expired_only ? 'expired ' : '' }transients from the database.`;
 		},
 
 		/**

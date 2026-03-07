@@ -37,6 +37,8 @@ import {
 export function registerCacheFlush() {
 	registerAbility( 'wp-agentic-admin/cache-flush', {
 		label: 'Flush cache',
+		description:
+			'Clear all WordPress object caches (page cache, object cache, opcode cache). Use when the user wants to flush, clear, purge, or refresh caches.',
 
 		// Keywords cover common ways users might request cache clearing.
 		keywords: [
@@ -65,6 +67,19 @@ export function registerCacheFlush() {
 				result.message ||
 				'Cache has been flushed successfully. Your site should now serve fresh content.'
 			);
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( result.success ) {
+				return 'The object cache was flushed successfully. The site will regenerate cached data on the next request.';
+			}
+			return `Cache flush failed: ${ result.message || 'unknown error' }.`;
 		},
 
 		/**

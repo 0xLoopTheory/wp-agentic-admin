@@ -46,6 +46,8 @@ function extractParams( userMessage ) {
 export function registerPluginActivate() {
 	registerAbility( 'wp-agentic-admin/plugin-activate', {
 		label: 'Activate plugins',
+		description:
+			'Activate a WordPress plugin by name or slug. Returns success or failure with the reason (e.g., plugin not found, already active).',
 
 		// Keywords for activation-related commands.
 		keywords: [
@@ -69,6 +71,19 @@ export function registerPluginActivate() {
 				result,
 				'Plugin has been activated successfully.'
 			);
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( result.error ) {
+				return `Plugin activation failed: ${ result.error }.`;
+			}
+			return result.message || 'The plugin was activated successfully.';
 		},
 
 		// Export extractParams so it can be tested or reused.

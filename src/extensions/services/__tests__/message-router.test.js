@@ -1,17 +1,12 @@
 /**
  * Message Router Tests
  *
- * Tests the 3-tier routing logic:
- * 1. Conversational mode (informational questions)
- * 2. Workflow mode (keyword-based detection)
- * 3. ReAct mode (default for actions)
+ * Tests the 2-tier routing logic:
+ * 1. Workflow mode (keyword-based detection)
+ * 2. ReAct mode (default for everything else — actions AND questions)
  */
 
-import {
-	route,
-	isWorkflowQuery,
-	isConversationalQuery,
-} from '../message-router';
+import { route, isWorkflowQuery } from '../message-router';
 import workflowRegistry from '../workflow-registry';
 
 // Mock workflow registry
@@ -32,58 +27,6 @@ jest.mock( '../../utils/logger', () => ( {
 describe( 'MessageRouter', () => {
 	beforeEach( () => {
 		jest.clearAllMocks();
-	} );
-
-	describe( 'Conversational Routing (Questions)', () => {
-		it( 'should route "what is" questions to conversational mode', () => {
-			expect( route( 'what is a transient?' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'what are plugins?' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'what does cache flush do?' ).type ).toBe(
-				'conversational'
-			);
-		} );
-
-		it( 'should route "how" questions to conversational mode', () => {
-			expect( route( 'how do I install a plugin?' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'how can I optimize my database?' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'how to clear cache?' ).type ).toBe(
-				'conversational'
-			);
-		} );
-
-		it( 'should route "why" questions to conversational mode', () => {
-			expect( route( 'why is my site slow?' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'why are plugins important?' ).type ).toBe(
-				'conversational'
-			);
-		} );
-
-		it( 'should route "explain" requests to conversational mode', () => {
-			expect( route( 'explain what transients are' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'tell me about WordPress cache' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'describe the plugin system' ).type ).toBe(
-				'conversational'
-			);
-		} );
-
-		it( 'should use isConversationalQuery utility', () => {
-			expect( isConversationalQuery( 'what is a plugin?' ) ).toBe( true );
-			expect( isConversationalQuery( 'list plugins' ) ).toBe( false );
-		} );
 	} );
 
 	describe( 'Workflow Routing (Keywords)', () => {
@@ -158,6 +101,17 @@ describe( 'MessageRouter', () => {
 			expect( route( 'show error log' ).type ).toBe( 'react' );
 		} );
 
+		it( 'should route questions to ReAct mode', () => {
+			expect( route( 'what is a transient?' ).type ).toBe( 'react' );
+			expect( route( 'how do I install a plugin?' ).type ).toBe(
+				'react'
+			);
+			expect( route( 'why is my site slow?' ).type ).toBe( 'react' );
+			expect( route( 'explain what transients are' ).type ).toBe(
+				'react'
+			);
+		} );
+
 		it( 'should route vague queries to ReAct mode', () => {
 			expect( route( 'my site is slow' ).type ).toBe( 'react' );
 			expect( route( 'something is broken' ).type ).toBe( 'react' );
@@ -191,23 +145,13 @@ describe( 'MessageRouter', () => {
 			expect( route( {} ).type ).toBe( 'react' );
 		} );
 
-		it( 'should prioritize conversational over workflow', () => {
-			// Even if workflow matches, questions should go to conversational
+		it( 'should route questions with workflow keywords to workflow', () => {
+			// Workflow detection takes priority — if a workflow matches, use it
 			const mockWorkflow = { id: 'plugin-audit', label: 'Plugin Audit' };
 			workflowRegistry.detectWorkflow.mockReturnValue( mockWorkflow );
 
-			// This is a question that happens to contain workflow keywords
 			expect( route( 'what is a plugin audit?' ).type ).toBe(
-				'conversational'
-			);
-		} );
-
-		it( 'should be case-insensitive for question patterns', () => {
-			expect( route( 'What Is A Plugin?' ).type ).toBe(
-				'conversational'
-			);
-			expect( route( 'HOW DO I CLEAR CACHE?' ).type ).toBe(
-				'conversational'
+				'workflow'
 			);
 		} );
 	} );
@@ -217,7 +161,6 @@ describe( 'MessageRouter', () => {
 			workflowRegistry.detectWorkflow.mockReturnValue( null );
 		} );
 
-		// These are the actual tests we ran manually
 		it( 'should handle "list plugins" → ReAct', () => {
 			expect( route( 'list plugins' ).type ).toBe( 'react' );
 		} );
@@ -226,10 +169,12 @@ describe( 'MessageRouter', () => {
 			expect( route( 'my site is slow' ).type ).toBe( 'react' );
 		} );
 
-		it( 'should handle "what is a transient?" → Conversational', () => {
-			expect( route( 'what is a transient?' ).type ).toBe(
-				'conversational'
-			);
+		it( 'should handle "what is a transient?" → ReAct', () => {
+			expect( route( 'what is a transient?' ).type ).toBe( 'react' );
+		} );
+
+		it( 'should handle "why is my site so slow?" → ReAct', () => {
+			expect( route( 'why is my site so slow?' ).type ).toBe( 'react' );
 		} );
 
 		it( 'should handle "full site cleanup" → Workflow', () => {
@@ -255,9 +200,19 @@ describe( 'MessageRouter', () => {
 		} );
 
 		it( 'should handle "how many plugins do I have?" → ReAct', () => {
-			// This is a question, but it requires calling a tool to answer
-			// The ReAct agent will handle this correctly
 			expect( route( 'how many plugins do I have?' ).type ).toBe(
+				'react'
+			);
+		} );
+
+		it( 'should handle "I\'m getting a white screen" → ReAct', () => {
+			expect( route( "I'm getting a white screen" ).type ).toBe(
+				'react'
+			);
+		} );
+
+		it( 'should handle "how many rewrite rules do I have?" → ReAct', () => {
+			expect( route( 'how many rewrite rules do I have?' ).type ).toBe(
 				'react'
 			);
 		} );

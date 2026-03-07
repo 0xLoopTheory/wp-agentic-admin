@@ -41,6 +41,8 @@ export function registerPluginList() {
 		// Label appears in the AI's system prompt to describe capabilities.
 		// Make it descriptive so the LLM knows when to suggest using this ability.
 		label: 'List installed plugins',
+		description:
+			'List all installed WordPress plugins with their active/inactive status, version, and author. Use for questions about installed plugins, plugin counts, or which plugins are active.',
 
 		// Keywords help the LLM understand when to use this ability.
 		// Include common variations of how users might phrase requests.
@@ -106,6 +108,29 @@ export function registerPluginList() {
 				) }`;
 			}
 			return summary;
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			const { plugins, total, active } = result;
+			if ( ! plugins || plugins.length === 0 ) {
+				return 'No plugins are installed on this site.';
+			}
+			const activeNames = plugins.filter( ( p ) => p.active ).map( ( p ) => p.name );
+			const inactiveNames = plugins.filter( ( p ) => ! p.active ).map( ( p ) => p.name );
+			let text = `Found ${ total } plugins installed. ${ active } active, ${ total - active } inactive.`;
+			if ( activeNames.length > 0 ) {
+				text += ` Active: ${ activeNames.join( ', ' ) }.`;
+			}
+			if ( inactiveNames.length > 0 ) {
+				text += ` Inactive: ${ inactiveNames.join( ', ' ) }.`;
+			}
+			return text;
 		},
 
 		/**

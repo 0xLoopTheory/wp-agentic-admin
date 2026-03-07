@@ -42,6 +42,8 @@ import {
 export function registerCoreSiteInfo() {
 	registerAbility( 'core/get-site-info', {
 		label: 'Get site information',
+		description:
+			'Get WordPress site details: site name, tagline, URL, admin email, language, charset, and WordPress version. Use for questions about the site identity or configuration.',
 
 		keywords: [
 			'site name',
@@ -98,6 +100,41 @@ export function registerCoreSiteInfo() {
 			}
 
 			return lines.join( '\n' );
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from WordPress core.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result || typeof result !== 'object' ) {
+				return 'Unable to retrieve site information.';
+			}
+			const parts = [];
+			if ( result.name ) {
+				parts.push( `site name is "${ result.name }"` );
+			}
+			if ( result.description ) {
+				parts.push( `tagline is "${ result.description }"` );
+			}
+			if ( result.url ) {
+				parts.push( `URL is ${ result.url }` );
+			}
+			if ( result.version ) {
+				parts.push( `WordPress ${ result.version }` );
+			}
+			if ( result.language ) {
+				parts.push( `language: ${ result.language }` );
+			}
+			if ( result.admin_email ) {
+				parts.push( `admin email: ${ result.admin_email }` );
+			}
+			if ( parts.length === 0 ) {
+				return 'Site information was retrieved but contained no data.';
+			}
+			return `Site info: ${ parts.join( ', ' ) }.`;
 		},
 
 		/**

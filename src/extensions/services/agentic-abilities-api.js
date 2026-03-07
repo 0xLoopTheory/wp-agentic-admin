@@ -32,9 +32,16 @@ import workflowRegistry from './workflow-registry';
  * @param {string}   id                                  - Unique ability identifier (e.g., 'my-plugin/my-ability').
  *                                                       Must match the ID used in register_agentic_ability() in PHP.
  * @param {Object}   config                              - Ability configuration.
- * @param {string[]} [config.keywords]                   - Keywords that trigger this ability.
+ * @param {string}   [config.description]                - One-sentence description of what this ability does and what data
+ *                                                         it returns. Shown to the LLM to help it decide when to use this tool.
+ *                                                         Sent with every LLM request, so keep it concise (under 30 words).
+ *                                                         Recommended for all abilities.
+ * @param {string[]} [config.keywords]                   - Keywords that trigger this ability in workflow detection.
  * @param {string}   [config.initialMessage]             - Message shown while ability executes.
- * @param {Function} [config.summarize]                  - Function to generate human-readable summary from result.
+ * @param {Function} [config.summarize]                  - Function to generate human-readable summary from result (for users).
+ * @param {Function} [config.interpretResult]            - Function to generate plain-English interpretation from result (for LLM).
+ *                                                         Receives (result, userMessage). Helps small models correctly understand
+ *                                                         tool output, especially empty or negative results.
  * @param {Function} [config.execute]                    - Async function that executes the ability.
  * @param {Function} [config.extractParams]              - Function to extract parameters from user message.
  * @param {boolean}  [config.requiresConfirmation=false] - Whether to show confirmation modal.

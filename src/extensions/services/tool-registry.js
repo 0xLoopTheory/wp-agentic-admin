@@ -17,7 +17,10 @@
  * @property {string}          id                           - Unique tool identifier (e.g., 'wp-agentic-admin/plugin-list')
  * @property {string[]}        keywords                     - Keywords that trigger this tool
  * @property {string}          initialMessage               - Message shown when tool starts executing
- * @property {Function}        summarize                    - Function that generates summary from result
+ * @property {Function}        summarize                    - Function that generates summary from result (for users)
+ * @property {Function}        [interpretResult]            - Function that generates plain-English interpretation (for LLM).
+ *                                                            Receives (result, userMessage) and returns a string that helps the
+ *                                                            LLM understand the tool output, especially empty or negative results.
  * @property {Function}        execute                      - Async function that executes the tool
  * @property {boolean}         [requiresConfirmation=false] - Whether to confirm before executing
  * @property {string}          [confirmationMessage]        - Custom confirmation message

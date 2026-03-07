@@ -42,6 +42,8 @@ export function registerSiteHealth() {
 		// Descriptive label helps the LLM understand when to use this ability.
 		// Including examples in parentheses helps with keyword matching.
 		label: 'Check site health (PHP version, WordPress version, server info)',
+		description:
+			'Run a site health check. Returns PHP version, WordPress version, server software, active theme, memory limit, debug mode, and database size.',
 
 		// Broad keyword coverage since users ask about health in many ways.
 		keywords: [
@@ -154,6 +156,41 @@ export function registerSiteHealth() {
 				})\n` +
 				` * * Memory Limit: * * ${ result.memory_limit || 'Unknown' }`
 			);
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The health data from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			const parts = [];
+			if ( result.wordpress_version ) {
+				parts.push( `WordPress ${ result.wordpress_version }` );
+			}
+			if ( result.php_version ) {
+				parts.push( `PHP ${ result.php_version }` );
+			}
+			if ( result.mysql_version ) {
+				parts.push( `MySQL ${ result.mysql_version }` );
+			}
+			if ( result.server_software ) {
+				parts.push( `Server: ${ result.server_software }` );
+			}
+			if ( result.active_theme?.name ) {
+				parts.push( `Theme: ${ result.active_theme.name } (${ result.active_theme.version || '?' })` );
+			}
+			if ( result.memory_limit ) {
+				parts.push( `Memory limit: ${ result.memory_limit }` );
+			}
+			if ( result.debug_mode ) {
+				parts.push( 'Debug mode is ON' );
+			}
+			if ( parts.length === 0 ) {
+				return 'Site health data was retrieved but contained no information.';
+			}
+			return `Site health: ${ parts.join( ', ' ) }.`;
 		},
 
 		/**

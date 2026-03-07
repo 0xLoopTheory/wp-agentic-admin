@@ -52,6 +52,8 @@ import {
 export function registerCronList() {
 	registerAbility( 'wp-agentic-admin/cron-list', {
 		label: 'List cron events',
+		description:
+			'List all scheduled WordPress cron events with their next run time, schedule, and overdue status. Use for questions about scheduled tasks, background jobs, or overdue cron events.',
 
 		keywords: [
 			'cron',
@@ -111,6 +113,30 @@ export function registerCronList() {
 			}
 
 			return summary;
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result.success ) {
+				return `Failed to fetch cron events: ${ result.message || 'unknown error' }.`;
+			}
+			const total = result.total_events || 0;
+			const overdue = result.overdue_count || 0;
+			if ( total === 0 ) {
+				return 'No cron events are currently scheduled.';
+			}
+			let text = `Found ${ total } scheduled cron events.`;
+			if ( overdue > 0 ) {
+				text += ` WARNING: ${ overdue } events are overdue, which may indicate wp-cron is not running properly.`;
+			} else {
+				text += ' All events are running on schedule.';
+			}
+			return text;
 		},
 
 		/**

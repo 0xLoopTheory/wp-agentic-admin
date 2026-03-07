@@ -38,6 +38,8 @@ import {
 export function registerCoreEnvironmentInfo() {
 	registerAbility( 'core/get-environment-info', {
 		label: 'Get environment info',
+		description:
+			'Get the WordPress environment type (production, staging, development, local) and related server information. Use when the user asks what environment they are on.',
 
 		keywords: [
 			'environment type',
@@ -88,6 +90,35 @@ export function registerCoreEnvironmentInfo() {
 			}
 
 			return lines.join( '\n' );
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from WordPress core.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result || typeof result !== 'object' ) {
+				return 'Unable to retrieve environment information.';
+			}
+			const parts = [];
+			if ( result.environment ) {
+				parts.push( `environment type is ${ result.environment }` );
+			}
+			if ( result.wp_version ) {
+				parts.push( `WordPress ${ result.wp_version }` );
+			}
+			if ( result.php_version ) {
+				parts.push( `PHP ${ result.php_version }` );
+			}
+			if ( result.db_server_info ) {
+				parts.push( `database: ${ result.db_server_info }` );
+			}
+			if ( parts.length === 0 ) {
+				return 'Environment information was retrieved but contained no data.';
+			}
+			return `Environment info: ${ parts.join( ', ' ) }.`;
 		},
 
 		/**

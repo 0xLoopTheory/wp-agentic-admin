@@ -238,10 +238,15 @@ class ReactAgent {
 						content: null,
 						tool_calls: [ toolCall ],
 					} );
+					// In function calling mode, include the interpretation
+					// in the tool result content so the LLM sees it directly.
+					const toolContent = toolResult.result_for_llm
+						? `${ toolResult.result_for_llm }\n\n${ JSON.stringify( toolResult ) }`
+						: JSON.stringify( toolResult );
 					messages.push( {
 						role: 'tool',
 						tool_call_id: toolCall.id,
-						content: JSON.stringify( toolResult ),
+						content: toolContent,
 					} );
 
 					continue;
@@ -359,8 +364,19 @@ class ReactAgent {
 					max_tokens: this.config.maxTokens,
 				} );
 
-				const content = response.choices[ 0 ]?.message?.content || '';
+				let content = response.choices[ 0 ]?.message?.content || '';
 				log.debug( 'LLM response:', content );
+
+				// Strip <think> blocks early so they never leak into displayed output.
+				// Qwen 3 and similar models output <think>...</think> before the response.
+				content = content
+					.replace( /<think>[\s\S]*?<\/think>\s*/g, '' )
+					.trim();
+				// Handle incomplete think block (no closing tag — model ran out of tokens)
+				if ( content.startsWith( '<think>' ) ) {
+					const jsonIdx = content.indexOf( '{' );
+					content = jsonIdx > 0 ? content.substring( jsonIdx ) : '';
+				}
 
 				// Parse JSON response
 				const action = this.parseActionFromResponse( content );
@@ -469,7 +485,7 @@ class ReactAgent {
 					} );
 					messages.push( {
 						role: 'user',
-						content: `Tool result: ${ truncatedResult }\n\nRemember: Respond with ONLY a JSON object. Either call another tool or provide final_answer.`,
+						content: this.buildToolResultMessage( toolResult, truncatedResult ),
 					} );
 
 					continue;
@@ -634,6 +650,22 @@ class ReactAgent {
 	parseActionFromResponse( content ) {
 		try {
 			let text = content.trim();
+
+			// Strip <think>...</think> blocks from models with thinking mode (e.g. Qwen 3).
+			// The model may output reasoning in <think> tags before the actual JSON response.
+			// Handle both complete (<think>...</think>{json}) and incomplete (<think>... cutoff) cases.
+			text = text.replace( /<think>[\s\S]*?<\/think>\s*/g, '' ).trim();
+			if ( text.startsWith( '<think>' ) ) {
+				// Incomplete think block (no closing tag) — model used all tokens on thinking.
+				// Try to find JSON after the thinking content.
+				const jsonStart = text.indexOf( '{' );
+				if ( jsonStart > 0 ) {
+					text = text.substring( jsonStart );
+				} else {
+					log.warn( 'Response is only a <think> block with no JSON' );
+					return null;
+				}
+			}
 
 			// Remove markdown code blocks if present
 			if ( text.startsWith( '```json' ) ) {
@@ -808,9 +840,18 @@ class ReactAgent {
 
 			this.callbacks.onToolEnd( toolId, result, true );
 
+			// Generate plain-English interpretation for the LLM.
+			// This helps small models understand tool results correctly,
+			// especially for empty/negative results they might misinterpret.
+			let resultForLLM = null;
+			if ( typeof tool.interpretResult === 'function' ) {
+				resultForLLM = tool.interpretResult( result, userMessage );
+			}
+
 			return {
 				success: true,
 				data: result,
+				...( resultForLLM ? { result_for_llm: resultForLLM } : {} ),
 			};
 		} catch ( error ) {
 			log.error( 'Tool execution error:', error );
@@ -853,6 +894,30 @@ class ReactAgent {
 	}
 
 	/**
+	 * Build tool result message for prompt-based mode
+	 *
+	 * If the tool provides a plain-English interpretation via interpretResult(),
+	 * it is placed first so the LLM reads it before the raw JSON data.
+	 * This helps small models correctly interpret empty or negative results.
+	 *
+	 * @param {Object} toolResult      - The tool execution result
+	 * @param {string} truncatedResult - JSON-stringified (possibly truncated) result
+	 * @return {string} Formatted message for the conversation
+	 */
+	buildToolResultMessage( toolResult, truncatedResult ) {
+		let message;
+		if ( toolResult.result_for_llm ) {
+			message = `Tool interpretation: ${ toolResult.result_for_llm }\n\nRaw data: ${ truncatedResult }`;
+		} else {
+			message = `Tool result: ${ truncatedResult }`;
+		}
+		return (
+			message +
+			'\n\nRemember: Respond with ONLY a JSON object. Either call another tool or provide final_answer.'
+		);
+	}
+
+	/**
 	 * Build system prompt for function calling mode
 	 *
 	 * @return {string} System prompt
@@ -860,42 +925,18 @@ class ReactAgent {
 	buildSystemPromptFunctionCalling() {
 		const tools = this.toolRegistry.getAll();
 
-		return `You are a WordPress assistant that helps users by calling available tools one at a time.
-
-AVAILABLE TOOLS: You have access to ${ tools.length } tools via function calling.
-
-HOW TO WORK:
-1. Understand what the user wants
-2. Call ONE tool at a time using function calling
-3. See the result
-4. Decide if you need another tool, or if you can answer
-5. Provide a final answer when done
+		return `You are a WordPress assistant. Call tools one at a time to help users. Answer directly if no tool is needed.
 
 RULES:
-- Call ONE tool per step
-- Wait for results before deciding next step
-- Use tools to get real data, never fake it
-- Answer conversationally if no tools are needed
-
-ERROR HANDLING:
-- If a tool returns {success: false}, explain the failure to the user clearly
-- Do NOT retry a failed tool with the same arguments
-- Do NOT guess or invent tool names — only use the tools provided
-- If the task cannot be completed, explain why and suggest alternatives
+- Call ONE tool per step, wait for the result before continuing
+- Summarize tool results for humans, never copy raw data
+- If a tool fails, explain the error clearly
+- Never retry a failed tool or invent tool names
 
 EXAMPLES:
-
-User: "list my plugins"
-→ Call plugin-list tool → Answer with the results
-
-User: "my site is slow"
-→ Call site-health → See database is large → Call db-optimize → Answer with summary
-
-User: "deactivate broken-plugin"
-→ Call plugin-deactivate → If it fails with "Plugin not found", tell the user the exact error
-
-User: "what is a transient?"
-→ Answer directly (no tools needed)`;
+"list my plugins" -> call plugin-list -> summarize results
+"my site is slow" -> call site-health -> if DB is large, call db-optimize -> summarize
+"what is a transient?" -> answer directly (no tool needed)`;
 	}
 
 	/**
@@ -909,54 +950,33 @@ User: "what is a transient?"
 			.map( ( t ) => `- ${ t.id }: ${ t.description || t.label || '' }` )
 			.join( '\n' );
 
-		return `You are a WordPress assistant. You help users by selecting and calling tools.
+		return `You are a WordPress assistant. Respond with ONLY a JSON object, nothing else.
 
-AVAILABLE TOOLS:
+TOOLS:
 ${ toolsList }
 
-JSON FORMAT REQUIREMENT:
-EVERY response must be EXACTLY ONE JSON object. No text before or after. No explanations.
+FORMAT — every response must be exactly one JSON object:
 
-To call a tool:
-{"action": "tool_call", "tool": "tool-id", "args": {}}
+Call a tool: {"action": "tool_call", "tool": "tool-id", "args": {}}
+Final answer: {"action": "final_answer", "content": "Your answer here"}
 
-To give final answer:
-{"action": "final_answer", "content": "Your answer here"}
+RULES:
+- One JSON object per response. No text before or after.
+- Summarize tool results for humans. Never copy raw JSON into final_answer.
+- If a tool fails, explain the failure in a final_answer.
+- Never retry a failed tool. Never invent tool names.
+- If no tool is needed, answer directly via final_answer.
 
-CRITICAL: ALWAYS output JSON, even after seeing tool results!
-
-ERROR HANDLING:
-- If a tool returns {success: false}, give a final_answer explaining the failure
-- Do NOT retry a failed tool with the same arguments
-- Do NOT invent tool names — only use tools from the list above
-
-COMPLETE EXAMPLE:
+EXAMPLE:
 
 User: "list plugins"
-You: {"action": "tool_call", "tool": "wp-agentic-admin/plugin-list", "args": {}}
+{"action": "tool_call", "tool": "wp-agentic-admin/plugin-list", "args": {}}
 
-Tool result: {"success": true, "data": {"plugins": [{"name": "Akismet", "active": true}, {"name": "Hello Dolly", "active": false}], "total": 2}}
-You: {"action": "final_answer", "content": "You have 2 plugins installed:\\n1. Akismet (active)\\n2. Hello Dolly (inactive)"}
-
-IMPORTANT: Summarize tool results in a human-friendly way. Do NOT just copy the JSON data!
+[Tool returns data]
+{"action": "final_answer", "content": "You have 2 plugins: Akismet (active) and Hello Dolly (inactive)."}
 
 User: "what is a transient?"
-You: {"action": "final_answer", "content": "A transient is temporary cached data in WordPress..."}
-
-WRONG EXAMPLES (Do NOT do this):
-
-❌ You have 2 plugins installed...  ← Plain text, missing JSON!
-❌ {"action": "tool_call", ...}{"action": "final_answer", ...}  ← Multiple objects!
-❌ I'll check that for you. {"action": "tool_call", ...}  ← Text before JSON!
-❌ {"action": "final_answer", "content": "{\\"success\\":true,\\"data\\":{...}}"}  ← Copying raw JSON data!
-
-When giving final_answer, write a SUMMARY for humans, not raw data!
-
-CORRECT:
-✅ {"action": "tool_call", "tool": "wp-agentic-admin/plugin-list", "args": {}}
-✅ {"action": "final_answer", "content": "You have 2 plugins installed: Akismet and Hello Dolly."}
-
-Remember: JSON ONLY. No exceptions. Every single response must be valid JSON.`;
+{"action": "final_answer", "content": "A transient is temporary cached data in WordPress..."}`;
 	}
 
 	/**

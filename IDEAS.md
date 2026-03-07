@@ -164,6 +164,25 @@ Features to pursue after hackathon priorities are complete.
 
 ---
 
+### 9. Tool Selection at Scale
+**Problem:** The ReAct agent presents all registered tools to the LLM — in prompt-based mode (small models without function calling) the entire tool list is dumped into the system prompt as text. With 14 abilities this works fine, but at 50-100+ abilities (especially with third-party extensions), the tool list alone could consume most of a small model's context window, leaving no room for the user message or reasoning.
+
+Even in function calling mode (structured `tools` array), 100+ tool definitions is a lot for a 7B model to reason over reliably.
+
+**Current state:** 14 abilities, ~2K tokens for the tool list. No issue yet, but this becomes a blocker before we hit 30+ abilities.
+
+**Proposed approaches (up for discussion):**
+
+**A. Two-stage selection** — A fast pre-filter (keyword matching, TF-IDF, or a tiny classifier) narrows 100 tools to ~5 candidates based on the user message, then only those 5 are passed to the LLM. Simple to implement, deterministic, but may miss tools with indirect relevance (e.g., "is debug mode enabled?" matching error-log-read).
+
+**B. Semantic tool retrieval** — Embed all tool descriptions into vectors (using a small embedding model), retrieve top-K by cosine similarity to the user query. More robust than keyword matching, handles indirect relevance, but adds an embedding dependency and latency.
+
+**C. Category-based routing** — Group tools into categories (diagnostics, performance, content, security). First ask the LLM to pick a category (cheap — only ~8 options), then show only the tools in that category. Clean UX, easy for third parties to register into categories, but multi-category queries ("check errors and optimize database") need special handling.
+
+**Considerations:** Whatever approach we pick must work for third-party abilities too — the filtering/routing logic can't be hardcoded. The `description` field on abilities (added in v0.4.x) was designed with this in mind — it gives any future retrieval system a well-written sentence to match against.
+
+---
+
 ## 🔬 Research & Experimental Ideas
 
 ### RAG (Retrieval-Augmented Generation)

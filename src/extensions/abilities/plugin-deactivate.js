@@ -66,6 +66,8 @@ function extractParams( userMessage ) {
 export function registerPluginDeactivate() {
 	registerAbility( 'wp-agentic-admin/plugin-deactivate', {
 		label: 'Deactivate plugins',
+		description:
+			'Deactivate a WordPress plugin by name or slug. Returns success or failure with the reason (e.g., plugin not found, already inactive).',
 
 		// Limited keywords since this is a destructive action.
 		// We want users to be explicit about wanting to deactivate.
@@ -84,6 +86,19 @@ export function registerPluginDeactivate() {
 				result,
 				'Plugin has been deactivated successfully.'
 			);
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( result.error ) {
+				return `Plugin deactivation failed: ${ result.error }.`;
+			}
+			return result.message || 'The plugin was deactivated successfully.';
 		},
 
 		// Export extractParams so it can be tested or reused.

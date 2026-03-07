@@ -41,6 +41,8 @@ import {
 export function registerDbOptimize() {
 	registerAbility( 'wp-agentic-admin/db-optimize', {
 		label: 'Optimize database',
+		description:
+			'Optimize WordPress database tables to reclaim space and improve query performance. Returns the number of tables optimized and space saved.',
 
 		// Keywords cover performance-related terms since DB optimization
 		// is often requested when the site "feels slow".
@@ -73,6 +75,22 @@ export function registerDbOptimize() {
 			}
 			// Fallback for unexpected result format.
 			return result.message || 'Database optimization complete.';
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( result.tables_optimized !== undefined ) {
+				return `Database optimization completed successfully. ${ result.tables_optimized } tables were optimized.`;
+			}
+			if ( result.success ) {
+				return result.message || 'Database optimization completed successfully.';
+			}
+			return `Database optimization failed: ${ result.message || 'unknown error' }.`;
 		},
 
 		/**

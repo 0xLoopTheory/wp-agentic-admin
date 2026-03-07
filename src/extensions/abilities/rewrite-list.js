@@ -18,6 +18,8 @@ import {
 export function registerRewriteList() {
 	registerAbility( 'wp-agentic-admin/rewrite-list', {
 		label: 'List rewrite rules',
+		description:
+			'List all WordPress rewrite rules (URL routing patterns). Returns rule count, permalink structure, and each rule pattern.',
 
 		keywords: [
 			'list rewrite',
@@ -56,6 +58,29 @@ export function registerRewriteList() {
 			}
 
 			return summary;
+		},
+
+		/**
+		 * Plain-English interpretation of the result for the LLM.
+		 *
+		 * @param {Object} result - The result from PHP.
+		 * @return {string} Plain-English interpretation.
+		 */
+		interpretResult: ( result ) => {
+			if ( ! result.success ) {
+				return `Failed to get rewrite rules: ${ result.message || 'unknown error' }.`;
+			}
+			const count = result.rules_count || 0;
+			let text = `Found ${ count } rewrite rules.`;
+			if ( result.permalink_structure ) {
+				text += ` Permalink structure: ${ result.permalink_structure }.`;
+			}
+			if ( count === 0 ) {
+				text += ' WARNING: No rewrite rules found. This is unusual and may indicate a problem with the permalink setup.';
+			} else if ( count > 200 ) {
+				text += ' NOTE: This is a high number of rules, which might impact performance.';
+			}
+			return text;
 		},
 
 		/**
