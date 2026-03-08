@@ -79,7 +79,9 @@ export function registerCacheFlush() {
 			if ( result.success ) {
 				return 'The object cache was flushed successfully. The site will regenerate cached data on the next request.';
 			}
-			return `Cache flush failed: ${ result.message || 'unknown error' }.`;
+			return `Cache flush failed: ${
+				result.message || 'unknown error'
+			}.`;
 		},
 
 		/**

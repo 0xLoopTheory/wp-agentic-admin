@@ -10,8 +10,8 @@
 /**
  * Run all assertions for a test case against actual results
  *
- * @param {Object} assertions - Expected assertions from the test definition
- * @param {Object} actual     - Actual results from the test hook
+ * @param {Object} assertions          - Expected assertions from the test definition
+ * @param {Object} actual              - Actual results from the test hook
  * @param {Object} actual.toolsUsed    - Array of tool IDs called
  * @param {Object} actual.observations - Array of tool results
  * @param {string} actual.lastMessage  - Last DOM message text
@@ -33,7 +33,9 @@ export function runAssertions( assertions, actual ) {
 			got,
 			message: pass
 				? `Tools match: ${ expected.join( ', ' ) }`
-				: `Expected tools [${ expected.join( ', ' ) }] but got [${ got.join( ', ' ) }]`,
+				: `Expected tools [${ expected.join(
+						', '
+				  ) }] but got [${ got.join( ', ' ) }]`,
 		} );
 		if ( ! pass ) {
 			allPassed = false;
@@ -117,7 +119,9 @@ export function runAssertions( assertions, actual ) {
 			got,
 			message: orderCorrect
 				? 'Tools called in correct order'
-				: `Tools not in expected order. Expected [${ expected.join( ' → ' ) }] but got [${ got.join( ' → ' ) }]`,
+				: `Tools not in expected order. Expected [${ expected.join(
+						' → '
+				  ) }] but got [${ got.join( ' → ' ) }]`,
 		} );
 		if ( ! orderCorrect ) {
 			allPassed = false;
@@ -135,7 +139,9 @@ export function runAssertions( assertions, actual ) {
 			got: count,
 			message: pass
 				? 'No tools called (conversational mode)'
-				: `Expected no tools but ${ count } were called: ${ ( actual.toolsUsed || [] ).join( ', ' ) }`,
+				: `Expected no tools but ${ count } were called: ${ (
+						actual.toolsUsed || []
+				  ).join( ', ' ) }`,
 		} );
 		if ( ! pass ) {
 			allPassed = false;
@@ -153,7 +159,10 @@ export function runAssertions( assertions, actual ) {
 			type: 'responseContains',
 			pass,
 			expected: assertions.responseContains,
-			got: missing.length === 0 ? 'All found' : `Missing: ${ missing.join( ', ' ) }`,
+			got:
+				missing.length === 0
+					? 'All found'
+					: `Missing: ${ missing.join( ', ' ) }`,
 			message: pass
 				? 'Response contains all expected keywords'
 				: `Response missing keywords: ${ missing.join( ', ' ) }`,
@@ -174,10 +183,15 @@ export function runAssertions( assertions, actual ) {
 			type: 'responseContainsAny',
 			pass,
 			expected: assertions.responseContainsAny,
-			got: found.length > 0 ? `Found: ${ found.join( ', ' ) }` : 'None found',
+			got:
+				found.length > 0
+					? `Found: ${ found.join( ', ' ) }`
+					: 'None found',
 			message: pass
 				? `Response contains: ${ found.join( ', ' ) }`
-				: `Response missing all of: ${ assertions.responseContainsAny.join( ', ' ) }`,
+				: `Response missing all of: ${ assertions.responseContainsAny.join(
+						', '
+				  ) }`,
 		} );
 		if ( ! pass ) {
 			allPassed = false;
@@ -208,7 +222,9 @@ export function runAssertions( assertions, actual ) {
 			const observations = actual.observations || [];
 
 			// Check if the condition tool was called and returned expected data
-			const condObs = observations.find( ( o ) => o.tool === cond.ifTool );
+			const condObs = observations.find(
+				( o ) => o.tool === cond.ifTool
+			);
 			if ( ! condObs ) {
 				results.push( {
 					type: 'conditionalAssertion',
@@ -224,11 +240,15 @@ export function runAssertions( assertions, actual ) {
 			// Check if the condition matches
 			const resultStr = JSON.stringify( condObs.result );
 			const conditionMet = cond.ifContains
-				? resultStr.toLowerCase().includes( cond.ifContains.toLowerCase() )
+				? resultStr
+						.toLowerCase()
+						.includes( cond.ifContains.toLowerCase() )
 				: true;
 
 			if ( conditionMet && cond.thenExpectTool ) {
-				const toolWasCalled = ( actual.toolsUsed || [] ).includes( cond.thenExpectTool );
+				const toolWasCalled = ( actual.toolsUsed || [] ).includes(
+					cond.thenExpectTool
+				);
 				results.push( {
 					type: 'conditionalAssertion',
 					pass: toolWasCalled,
@@ -248,7 +268,9 @@ export function runAssertions( assertions, actual ) {
 	return {
 		passed: allPassed,
 		results,
-		summary: `${ results.filter( ( r ) => r.pass ).length }/${ results.length } assertions passed`,
+		summary: `${ results.filter( ( r ) => r.pass ).length }/${
+			results.length
+		} assertions passed`,
 	};
 }
 

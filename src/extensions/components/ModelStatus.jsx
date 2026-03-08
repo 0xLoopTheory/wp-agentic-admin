@@ -75,16 +75,9 @@ const getLoadingStage = ( message, progress ) => {
 	) {
 		// Determine if downloading or loading from cache
 		const isFromCache = lowerMsg.includes( 'cache' );
-		const isDownloading =
-			lowerMsg.includes( 'fetch' ) ||
-			lowerMsg.includes( 'download' ) ||
-			! isFromCache;
-
 		return {
 			icon: isFromCache ? '📦' : '⬇️',
-			title: isFromCache
-				? 'Loading Model Weights'
-				: 'Downloading Model',
+			title: isFromCache ? 'Loading Model Weights' : 'Downloading Model',
 			description: isFromCache
 				? 'Loading AI model weights from cache...'
 				: 'Downloading AI model weights (~4.5GB)...',

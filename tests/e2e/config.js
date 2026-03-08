@@ -41,7 +41,8 @@ export const config = {
 		chatInput: '.wp-agentic-admin-chat-input textarea',
 		chatSendButton: '.wp-agentic-admin-chat-input button',
 		messageList: '.wp-agentic-admin-message-list',
-		lastMessage: '.wp-agentic-admin-message-list .agentic-message:last-child',
+		lastMessage:
+			'.wp-agentic-admin-message-list .agentic-message:last-child',
 	},
 
 	// Timeouts (in milliseconds)

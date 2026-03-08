@@ -89,7 +89,9 @@ export function registerTransientFlush() {
 		 */
 		interpretResult: ( result ) => {
 			if ( ! result.success ) {
-				return `Transient flush failed: ${ result.message || 'unknown error' }.`;
+				return `Transient flush failed: ${
+					result.message || 'unknown error'
+				}.`;
 			}
 			const count = result.deleted_count || 0;
 			if ( count === 0 ) {
@@ -97,7 +99,9 @@ export function registerTransientFlush() {
 					? 'No expired transients were found. The database is already clean.'
 					: 'No transients were found to delete.';
 			}
-			return `Successfully deleted ${ count } ${ result.expired_only ? 'expired ' : '' }transients from the database.`;
+			return `Successfully deleted ${ count } ${
+				result.expired_only ? 'expired ' : ''
+			}transients from the database.`;
 		},
 
 		/**

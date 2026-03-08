@@ -571,7 +571,10 @@ Explain what went wrong and suggest what the user might try next.`;
 
 				// Suppress <think> blocks from streaming to the UI.
 				// Qwen 3 outputs <think>...</think> before the actual response.
-				if ( fullResponse.includes( '<think>' ) && ! fullResponse.includes( '</think>' ) ) {
+				if (
+					fullResponse.includes( '<think>' ) &&
+					! fullResponse.includes( '</think>' )
+				) {
 					inThinkBlock = true;
 				}
 				if ( inThinkBlock && fullResponse.includes( '</think>' ) ) {

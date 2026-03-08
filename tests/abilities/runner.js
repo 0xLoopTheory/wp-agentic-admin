@@ -29,24 +29,37 @@ const modelIndex = args.indexOf( '--model' );
 const harnessIndex = args.indexOf( '--harness' );
 
 if ( fileIndex === -1 || ! args[ fileIndex + 1 ] ) {
-	console.error( 'Usage: node runner.js --file <test-file.js> [--harness <wp-agentic-admin-path>]' );
+	console.error(
+		'Usage: node runner.js --file <test-file.js> [--harness <wp-agentic-admin-path>]'
+	);
 	console.error( '' );
 	console.error( 'Options:' );
 	console.error( '  --file <path>       Path to test file (required)' );
-	console.error( '  --model <id>        Model ID (default: Qwen3-1.7B-q4f16_1-MLC)' );
-	console.error( '  --harness <path>    Path to wp-agentic-admin plugin directory' );
-	console.error( '                      (auto-detected from test file location if omitted)' );
+	console.error(
+		'  --model <id>        Model ID (default: Qwen3-1.7B-q4f16_1-MLC)'
+	);
+	console.error(
+		'  --harness <path>    Path to wp-agentic-admin plugin directory'
+	);
+	console.error(
+		'                      (auto-detected from test file location if omitted)'
+	);
 	console.error( '' );
 	console.error( 'Examples:' );
-	console.error( '  npm run test:abilities -- --file tests/abilities/core-abilities.test.js' );
-	console.error( '  node runner.js --file ../my-seo-plugin/tests/abilities/seo.test.js' );
+	console.error(
+		'  npm run test:abilities -- --file tests/abilities/core-abilities.test.js'
+	);
+	console.error(
+		'  node runner.js --file ../my-seo-plugin/tests/abilities/seo.test.js'
+	);
 	process.exit( 1 );
 }
 
 const testFilePath = path.resolve( args[ fileIndex + 1 ] );
-const modelId = modelIndex !== -1 && args[ modelIndex + 1 ]
-	? args[ modelIndex + 1 ]
-	: 'Qwen3-1.7B-q4f16_1-MLC';
+const modelId =
+	modelIndex !== -1 && args[ modelIndex + 1 ]
+		? args[ modelIndex + 1 ]
+		: 'Qwen3-1.7B-q4f16_1-MLC';
 
 if ( ! fs.existsSync( testFilePath ) ) {
 	console.error( `Test file not found: ${ testFilePath }` );
@@ -68,17 +81,27 @@ function resolvePluginRoot( testFile ) {
 	// 1. Explicit --harness flag
 	if ( harnessIndex !== -1 && args[ harnessIndex + 1 ] ) {
 		const explicit = path.resolve( args[ harnessIndex + 1 ] );
-		if ( fs.existsSync( path.join( explicit, 'build-test-harness/test-harness.js' ) ) ) {
+		if (
+			fs.existsSync(
+				path.join( explicit, 'build-test-harness/test-harness.js' )
+			)
+		) {
 			return explicit;
 		}
 		console.error( `Harness not found at: ${ explicit }` );
-		console.error( 'Expected build-test-harness/test-harness.js inside that directory.' );
+		console.error(
+			'Expected build-test-harness/test-harness.js inside that directory.'
+		);
 		process.exit( 1 );
 	}
 
 	// 2. Runner's own location (this file lives in wp-agentic-admin/tests/abilities/)
 	const runnerRoot = path.resolve( __dirname, '../..' );
-	if ( fs.existsSync( path.join( runnerRoot, 'build-test-harness/test-harness.js' ) ) ) {
+	if (
+		fs.existsSync(
+			path.join( runnerRoot, 'build-test-harness/test-harness.js' )
+		)
+	) {
 		return runnerRoot;
 	}
 
@@ -88,7 +111,11 @@ function resolvePluginRoot( testFile ) {
 		const basename = path.basename( dir );
 		if ( basename === 'plugins' ) {
 			const candidate = path.join( dir, 'wp-agentic-admin' );
-			if ( fs.existsSync( path.join( candidate, 'build-test-harness/test-harness.js' ) ) ) {
+			if (
+				fs.existsSync(
+					path.join( candidate, 'build-test-harness/test-harness.js' )
+				)
+			) {
 				return candidate;
 			}
 		}
@@ -101,20 +128,32 @@ function resolvePluginRoot( testFile ) {
 const pluginRoot = resolvePluginRoot( testFilePath );
 
 if ( ! pluginRoot ) {
-	console.error( 'Could not find wp-agentic-admin plugin with a built test harness.' );
+	console.error(
+		'Could not find wp-agentic-admin plugin with a built test harness.'
+	);
 	console.error( '' );
 	console.error( 'Options:' );
-	console.error( '  1. Run from the wp-agentic-admin directory: npm run test:abilities -- --file <path>' );
-	console.error( '  2. Specify the path explicitly: --harness /path/to/wp-agentic-admin' );
-	console.error( '  3. Place your plugin under the same wp-content/plugins/ directory' );
+	console.error(
+		'  1. Run from the wp-agentic-admin directory: npm run test:abilities -- --file <path>'
+	);
+	console.error(
+		'  2. Specify the path explicitly: --harness /path/to/wp-agentic-admin'
+	);
+	console.error(
+		'  3. Place your plugin under the same wp-content/plugins/ directory'
+	);
 	process.exit( 1 );
 }
 
-const testPagePath = path.resolve( pluginRoot, 'tests/abilities/test-page.html' );
-const buildPath = path.resolve( pluginRoot, 'build-test-harness/test-harness.js' );
+const buildPath = path.resolve(
+	pluginRoot,
+	'build-test-harness/test-harness.js'
+);
 
 if ( ! fs.existsSync( buildPath ) ) {
-	console.error( 'Test harness not built. Run `npm run build:test-harness` first.' );
+	console.error(
+		'Test harness not built. Run `npm run build:test-harness` first.'
+	);
 	process.exit( 1 );
 }
 
@@ -139,7 +178,9 @@ if ( ! fs.existsSync( buildPath ) ) {
 		process.exit( 1 );
 	}
 
-	console.log( `  Abilities: ${ abilities.map( a => a.id ).join( ', ' ) }` );
+	console.log(
+		`  Abilities: ${ abilities.map( ( a ) => a.id ).join( ', ' ) }`
+	);
 	console.log( `  Tests:     ${ tests.length }` );
 	console.log( '' );
 
@@ -207,12 +248,19 @@ if ( ! fs.existsSync( buildPath ) ) {
 	try {
 		// Navigate to test page via HTTP (required for Cache API)
 		const testPageUrl = `http://localhost:${ port }/tests/abilities/test-page.html`;
-		await page.goto( testPageUrl, { waitUntil: 'domcontentloaded', timeout: 30000 } );
+		await page.goto( testPageUrl, {
+			waitUntil: 'domcontentloaded',
+			timeout: 30000,
+		} );
 
 		// Verify test harness loaded
-		const harnessLoaded = await page.evaluate( () => !! window.TestHarness );
+		const harnessLoaded = await page.evaluate(
+			() => !! window.TestHarness
+		);
 		if ( ! harnessLoaded ) {
-			throw new Error( 'TestHarness not found on page. Is the build up to date?' );
+			throw new Error(
+				'TestHarness not found on page. Is the build up to date?'
+			);
 		}
 
 		// Inject test configuration
@@ -225,18 +273,23 @@ if ( ! fs.existsSync( buildPath ) ) {
 			requiresConfirmation: false,
 		} ) );
 
-		await page.evaluate( ( config ) => {
-			window.__testConfig = config;
-		}, {
-			modelId,
-			abilities: serializableAbilities,
-			tests,
-		} );
+		await page.evaluate(
+			( config ) => {
+				window.__testConfig = config;
+			},
+			{
+				modelId,
+				abilities: serializableAbilities,
+				tests,
+			}
+		);
 
 		// Run tests (this loads the model + executes all test cases)
 		console.log( '' );
 		const timeoutMs = 20 * 60 * 1000; // 20 minutes for model download + load + tests
-		const results = await page.evaluate( () => window.runTests(), { timeout: timeoutMs } );
+		const results = await page.evaluate( () => window.runTests(), {
+			timeout: timeoutMs,
+		} );
 
 		if ( results.error ) {
 			throw new Error( results.error );
@@ -244,28 +297,50 @@ if ( ! fs.existsSync( buildPath ) ) {
 
 		// Print results table
 		console.log( '' );
-		console.log( '  ┌─────────────────────────────────────────────────────────┐' );
-		console.log( '  │ Results                                                 │' );
-		console.log( '  ├────────┬────────────────────────────┬───────────────────┤' );
-		console.log( '  │ Status │ Input                      │ Tool Called        │' );
-		console.log( '  ├────────┼────────────────────────────┼───────────────────┤' );
+		console.log(
+			'  ┌─────────────────────────────────────────────────────────┐'
+		);
+		console.log(
+			'  │ Results                                                 │'
+		);
+		console.log(
+			'  ├────────┬────────────────────────────┬───────────────────┤'
+		);
+		console.log(
+			'  │ Status │ Input                      │ Tool Called        │'
+		);
+		console.log(
+			'  ├────────┼────────────────────────────┼───────────────────┤'
+		);
 
 		for ( const r of results.results ) {
 			const status = r.passed ? '  PASS' : '  FAIL';
-			const input = r.input.length > 26 ? r.input.substring( 0, 23 ) + '...' : r.input.padEnd( 26 );
+			const input =
+				r.input.length > 26
+					? r.input.substring( 0, 23 ) + '...'
+					: r.input.padEnd( 26 );
 			const tool = ( r.actualTool || '(none)' ).padEnd( 17 );
 			const mark = r.passed ? '✓' : '✗';
-			console.log( `  │ ${ mark } ${ status } │ ${ input } │ ${ tool } │` );
+			console.log(
+				`  │ ${ mark } ${ status } │ ${ input } │ ${ tool } │`
+			);
 			if ( ! r.passed ) {
 				const expectStr = Array.isArray( r.expectTool )
 					? r.expectTool.join( ' | ' )
-					: ( r.expectTool || '(none)' );
-				const expected = expectStr.length > 17 ? expectStr.substring( 0, 14 ) + '...' : expectStr.padEnd( 17 );
-				console.log( `  │        │   expected:                │ ${ expected } │` );
+					: r.expectTool || '(none)';
+				const expected =
+					expectStr.length > 17
+						? expectStr.substring( 0, 14 ) + '...'
+						: expectStr.padEnd( 17 );
+				console.log(
+					`  │        │   expected:                │ ${ expected } │`
+				);
 			}
 		}
 
-		console.log( '  └────────┴────────────────────────────┴───────────────────┘' );
+		console.log(
+			'  └────────┴────────────────────────────┴───────────────────┘'
+		);
 		console.log( '' );
 		console.log( `  ${ results.passed }/${ results.total } passed` );
 		console.log( `  Mode: ${ results.mode || 'unknown' }` );
@@ -275,7 +350,6 @@ if ( ! fs.existsSync( buildPath ) ) {
 		await browser.close();
 		server.close();
 		process.exit( results.passed === results.total ? 0 : 1 );
-
 	} catch ( err ) {
 		console.error( `\n  Error: ${ err.message }` );
 		await browser.close();

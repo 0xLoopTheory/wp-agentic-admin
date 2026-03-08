@@ -123,7 +123,9 @@ export function registerCronList() {
 		 */
 		interpretResult: ( result ) => {
 			if ( ! result.success ) {
-				return `Failed to fetch cron events: ${ result.message || 'unknown error' }.`;
+				return `Failed to fetch cron events: ${
+					result.message || 'unknown error'
+				}.`;
 			}
 			const total = result.total_events || 0;
 			const overdue = result.overdue_count || 0;

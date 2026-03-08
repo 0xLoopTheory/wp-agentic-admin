@@ -17,7 +17,12 @@ export const suite = {
 			assertions: {
 				noToolsCalled: true,
 				responseNotEmpty: true,
-				responseContainsAny: [ 'transient', 'cache', 'temporary', 'stored' ],
+				responseContainsAny: [
+					'transient',
+					'cache',
+					'temporary',
+					'stored',
+				],
 			},
 		},
 		{

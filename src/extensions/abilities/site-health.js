@@ -179,7 +179,11 @@ export function registerSiteHealth() {
 				parts.push( `Server: ${ result.server_software }` );
 			}
 			if ( result.active_theme?.name ) {
-				parts.push( `Theme: ${ result.active_theme.name } (${ result.active_theme.version || '?' })` );
+				parts.push(
+					`Theme: ${ result.active_theme.name } (${
+						result.active_theme.version || '?'
+					})`
+				);
 			}
 			if ( result.memory_limit ) {
 				parts.push( `Memory limit: ${ result.memory_limit }` );

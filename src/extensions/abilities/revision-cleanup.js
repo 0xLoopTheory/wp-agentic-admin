@@ -93,7 +93,9 @@ export function registerRevisionCleanup() {
 		 */
 		interpretResult: ( result ) => {
 			if ( ! result.success ) {
-				return `Revision cleanup failed: ${ result.message || 'unknown error' }.`;
+				return `Revision cleanup failed: ${
+					result.message || 'unknown error'
+				}.`;
 			}
 			if ( result.dry_run ) {
 				const wouldDelete = result.deleted_count || 0;
@@ -107,7 +109,11 @@ export function registerRevisionCleanup() {
 			if ( deleted === 0 ) {
 				return 'No revisions were found to delete. The database is already clean.';
 			}
-			return `Successfully deleted ${ deleted } revisions.${ result.space_saved ? ` Freed ${ result.space_saved } of space.` : '' }`;
+			return `Successfully deleted ${ deleted } revisions.${
+				result.space_saved
+					? ` Freed ${ result.space_saved } of space.`
+					: ''
+			}`;
 		},
 
 		/**

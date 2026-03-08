@@ -68,7 +68,9 @@ export function registerRewriteList() {
 		 */
 		interpretResult: ( result ) => {
 			if ( ! result.success ) {
-				return `Failed to get rewrite rules: ${ result.message || 'unknown error' }.`;
+				return `Failed to get rewrite rules: ${
+					result.message || 'unknown error'
+				}.`;
 			}
 			const count = result.rules_count || 0;
 			let text = `Found ${ count } rewrite rules.`;
@@ -76,9 +78,11 @@ export function registerRewriteList() {
 				text += ` Permalink structure: ${ result.permalink_structure }.`;
 			}
 			if ( count === 0 ) {
-				text += ' WARNING: No rewrite rules found. This is unusual and may indicate a problem with the permalink setup.';
+				text +=
+					' WARNING: No rewrite rules found. This is unusual and may indicate a problem with the permalink setup.';
 			} else if ( count > 200 ) {
-				text += ' NOTE: This is a high number of rules, which might impact performance.';
+				text +=
+					' NOTE: This is a high number of rules, which might impact performance.';
 			}
 			return text;
 		},

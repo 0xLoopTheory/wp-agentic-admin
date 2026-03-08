@@ -88,9 +88,14 @@ export function registerDbOptimize() {
 				return `Database optimization completed successfully. ${ result.tables_optimized } tables were optimized.`;
 			}
 			if ( result.success ) {
-				return result.message || 'Database optimization completed successfully.';
+				return (
+					result.message ||
+					'Database optimization completed successfully.'
+				);
 			}
-			return `Database optimization failed: ${ result.message || 'unknown error' }.`;
+			return `Database optimization failed: ${
+				result.message || 'unknown error'
+			}.`;
 		},
 
 		/**

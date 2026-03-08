@@ -121,9 +121,15 @@ export function registerPluginList() {
 			if ( ! plugins || plugins.length === 0 ) {
 				return 'No plugins are installed on this site.';
 			}
-			const activeNames = plugins.filter( ( p ) => p.active ).map( ( p ) => p.name );
-			const inactiveNames = plugins.filter( ( p ) => ! p.active ).map( ( p ) => p.name );
-			let text = `Found ${ total } plugins installed. ${ active } active, ${ total - active } inactive.`;
+			const activeNames = plugins
+				.filter( ( p ) => p.active )
+				.map( ( p ) => p.name );
+			const inactiveNames = plugins
+				.filter( ( p ) => ! p.active )
+				.map( ( p ) => p.name );
+			let text = `Found ${ total } plugins installed. ${ active } active, ${
+				total - active
+			} inactive.`;
 			if ( activeNames.length > 0 ) {
 				text += ` Active: ${ activeNames.join( ', ' ) }.`;
 			}

@@ -185,9 +185,7 @@ const MessageItem = ( { message } ) => {
 				</div>
 				<div className="agentic-loading">
 					<div className="agentic-loading__spinner" />
-					<span className="agentic-loading__text">
-						{ content }
-					</span>
+					<span className="agentic-loading__text">{ content }</span>
 				</div>
 			</div>
 		);

@@ -22,7 +22,13 @@ export const suite = {
 				toolsCalledMinimum: 2,
 				toolsCalledMaximum: 5,
 				responseNotEmpty: true,
-				responseContainsAny: [ 'health', 'database', 'optimiz', 'cache', 'performance' ],
+				responseContainsAny: [
+					'health',
+					'database',
+					'optimiz',
+					'cache',
+					'performance',
+				],
 			},
 		},
 		{

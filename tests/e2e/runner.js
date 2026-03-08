@@ -56,14 +56,29 @@ export const suites = [
  *   click → #wp-submit
  *   wait_for → .wrap (admin page loaded)
  */
-export const step1_login = {
+export const step1Login = {
 	description: 'Login to WordPress admin',
 	actions: [
 		{ tool: 'navigate_page', args: { url: config.urls.login } },
-		{ tool: 'fill', args: { selector: config.selectors.loginUsername, value: config.credentials.username } },
-		{ tool: 'fill', args: { selector: config.selectors.loginPassword, value: config.credentials.password } },
+		{
+			tool: 'fill',
+			args: {
+				selector: config.selectors.loginUsername,
+				value: config.credentials.username,
+			},
+		},
+		{
+			tool: 'fill',
+			args: {
+				selector: config.selectors.loginPassword,
+				value: config.credentials.password,
+			},
+		},
 		{ tool: 'click', args: { selector: config.selectors.loginSubmit } },
-		{ tool: 'wait_for', args: { selector: '.wrap', timeout: config.timeouts.login } },
+		{
+			tool: 'wait_for',
+			args: { selector: '.wrap', timeout: config.timeouts.login },
+		},
 	],
 };
 
@@ -77,11 +92,17 @@ export const step1_login = {
  *   click → Load Model button
  *   wait_for → status indicator becomes ready (poll with evaluate_script)
  */
-export const step2_loadModel = {
+export const step2LoadModel = {
 	description: 'Navigate to plugin and load AI model',
 	actions: [
 		{ tool: 'navigate_page', args: { url: config.urls.plugin } },
-		{ tool: 'wait_for', args: { selector: config.selectors.root, timeout: config.timeouts.navigation } },
+		{
+			tool: 'wait_for',
+			args: {
+				selector: config.selectors.root,
+				timeout: config.timeouts.navigation,
+			},
+		},
 		{
 			tool: 'evaluate_script',
 			args: {
@@ -108,13 +129,14 @@ export const step2_loadModel = {
  * MCP tools to call:
  *   evaluate_script → set window.__wpAgenticTestMode = true
  */
-export const step3_injectTestMode = {
+export const step3InjectTestMode = {
 	description: 'Inject test mode flag',
 	actions: [
 		{
 			tool: 'evaluate_script',
 			args: {
-				expression: 'window.__wpAgenticTestMode = true; "test mode enabled"',
+				expression:
+					'window.__wpAgenticTestMode = true; "test mode enabled"',
 			},
 		},
 	],
@@ -159,7 +181,11 @@ export function runSuite( suite ) {
 	for ( const test of suite.tests ) {
 		let bestResult = null;
 
-		for ( let attempt = 1; attempt <= config.execution.maxRetries; attempt++ ) {
+		for (
+			let attempt = 1;
+			attempt <= config.execution.maxRetries;
+			attempt++
+		) {
 			// Execute test (via MCP tools)
 			// const actual = await executeTestViaMCP(test);
 			// const assertionResult = runAssertions(test.assertions, actual);
@@ -208,7 +234,9 @@ export function generateReport( suiteResults ) {
 	};
 
 	for ( const suite of suiteResults ) {
-		const passed = ( suite.results || [] ).filter( ( r ) => r.passed ).length;
+		const passed = ( suite.results || [] ).filter(
+			( r ) => r.passed
+		).length;
 		const total = ( suite.results || [] ).length;
 
 		report.summary.totalTests += total;
@@ -220,7 +248,10 @@ export function generateReport( suiteResults ) {
 			passed,
 			total,
 			passRate: total > 0 ? passed / total : 0,
-			meetsThreshold: total > 0 ? passed / total >= config.execution.passThreshold : false,
+			meetsThreshold:
+				total > 0
+					? passed / total >= config.execution.passThreshold
+					: false,
 		};
 	}
 
@@ -242,7 +273,9 @@ export function formatReportMarkdown( report ) {
 	let md = `# E2E Test Report\n\n`;
 	md += `**Model:** ${ report.model }\n`;
 	md += `**Date:** ${ report.timestamp }\n`;
-	md += `**Overall:** ${ report.summary.totalPassed }/${ report.summary.totalTests } passed (${ ( report.summary.passRate * 100 ).toFixed( 1 ) }%)\n\n`;
+	md += `**Overall:** ${ report.summary.totalPassed }/${
+		report.summary.totalTests
+	} passed (${ ( report.summary.passRate * 100 ).toFixed( 1 ) }%)\n\n`;
 
 	md += `## Results by Category\n\n`;
 	md += `| Category | Suite | Passed | Total | Rate | Threshold |\n`;
@@ -250,7 +283,9 @@ export function formatReportMarkdown( report ) {
 
 	for ( const [ cat, data ] of Object.entries( report.summary.categories ) ) {
 		const icon = data.meetsThreshold ? '✅' : '❌';
-		md += `| ${ cat } | ${ data.suite } | ${ data.passed } | ${ data.total } | ${ ( data.passRate * 100 ).toFixed( 0 ) }% | ${ icon } |\n`;
+		md += `| ${ cat } | ${ data.suite } | ${ data.passed } | ${
+			data.total
+		} | ${ ( data.passRate * 100 ).toFixed( 0 ) }% | ${ icon } |\n`;
 	}
 
 	md += `\n## Detailed Results\n\n`;
@@ -278,7 +313,7 @@ export default {
 	runSuite,
 	generateReport,
 	formatReportMarkdown,
-	step1_login,
-	step2_loadModel,
-	step3_injectTestMode,
+	step1Login,
+	step2LoadModel,
+	step3InjectTestMode,
 };

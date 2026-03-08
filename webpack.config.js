@@ -4,11 +4,11 @@
  * Extends the default @wordpress/scripts config to add:
  * - Service Worker as a separate entry point (no chunking, self-contained)
  *
- * @package WPAgenticAdmin
+ * @package
  */
 
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
-const path          = require( 'path' );
+const path = require( 'path' );
 
 // BUILD_TARGET=test-harness builds only the test harness bundle
 const isTestHarness = process.env.BUILD_TARGET === 'test-harness';
@@ -52,7 +52,10 @@ const testHarnessConfig = {
 	...defaultConfig,
 
 	entry: {
-		'test-harness': path.resolve( __dirname, 'src/extensions/test-harness.js' ),
+		'test-harness': path.resolve(
+			__dirname,
+			'src/extensions/test-harness.js'
+		),
 	},
 
 	output: {

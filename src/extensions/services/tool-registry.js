@@ -7,7 +7,7 @@
 
 /**
  * @typedef {Object} ToolAnnotations
- * @property {boolean} [readonly]    - Whether the tool only reads data (default: true)
+ * @property {boolean} [readOnly]    - Whether the tool only reads data (default: true)
  * @property {boolean} [destructive] - Whether the tool may cause data loss (default: false)
  * @property {boolean} [idempotent]  - Whether the tool is safe to repeat (default: true)
  */
@@ -19,8 +19,8 @@
  * @property {string}          initialMessage               - Message shown when tool starts executing
  * @property {Function}        summarize                    - Function that generates summary from result (for users)
  * @property {Function}        [interpretResult]            - Function that generates plain-English interpretation (for LLM).
- *                                                            Receives (result, userMessage) and returns a string that helps the
- *                                                            LLM understand the tool output, especially empty or negative results.
+ *                                                          Receives (result, userMessage) and returns a string that helps the
+ *                                                          LLM understand the tool output, especially empty or negative results.
  * @property {Function}        execute                      - Async function that executes the tool
  * @property {boolean}         [requiresConfirmation=false] - Whether to confirm before executing
  * @property {string}          [confirmationMessage]        - Custom confirmation message

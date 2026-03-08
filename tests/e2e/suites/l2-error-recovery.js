@@ -19,7 +19,14 @@ export const suite = {
 			assertions: {
 				toolsCalledMaximum: 2,
 				responseNotEmpty: true,
-				responseContainsAny: [ 'not found', 'error', 'could not', 'unable', 'doesn\'t exist', 'does not exist' ],
+				responseContainsAny: [
+					'not found',
+					'error',
+					'could not',
+					'unable',
+					"doesn't exist",
+					'does not exist',
+				],
 			},
 		},
 		{

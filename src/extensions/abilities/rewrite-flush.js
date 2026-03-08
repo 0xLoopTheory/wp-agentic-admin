@@ -90,9 +90,12 @@ export function registerRewriteFlush() {
 		 */
 		interpretResult: ( result ) => {
 			if ( ! result.success ) {
-				return `Rewrite rules flush failed: ${ result.message || 'unknown error' }.`;
+				return `Rewrite rules flush failed: ${
+					result.message || 'unknown error'
+				}.`;
 			}
-			let text = 'Rewrite rules were flushed and regenerated successfully.';
+			let text =
+				'Rewrite rules were flushed and regenerated successfully.';
 			if ( result.permalink_structure ) {
 				text += ` Current permalink structure: ${ result.permalink_structure }.`;
 			}

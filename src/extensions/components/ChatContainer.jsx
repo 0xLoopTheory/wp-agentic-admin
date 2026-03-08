@@ -22,7 +22,13 @@
  *
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from '@wordpress/element';
+import {
+	useCallback,
+	useEffect,
+	useMemo,
+	useRef,
+	useState,
+} from '@wordpress/element';
 import { Button, Modal, Notice, Snackbar } from '@wordpress/components';
 import MessageList from './MessageList';
 import ChatInput from './ChatInput';
@@ -450,7 +456,11 @@ const ChatContainer = ( {
 		const msgs = [ ...messages ];
 
 		// Show loading indicator inline in the message flow
-		const showThinking = isLoading && ! isExecutingTool && ! isStreaming && ! isRunningWorkflow;
+		const showThinking =
+			isLoading &&
+			! isExecutingTool &&
+			! isStreaming &&
+			! isRunningWorkflow;
 		const showRunningTool = isExecutingTool && ! isRunningWorkflow;
 
 		if ( showThinking || showRunningTool ) {
@@ -473,7 +483,14 @@ const ChatContainer = ( {
 		}
 
 		return msgs;
-	}, [ messages, isLoading, isExecutingTool, isStreaming, isRunningWorkflow, streamingText ] );
+	}, [
+		messages,
+		isLoading,
+		isExecutingTool,
+		isStreaming,
+		isRunningWorkflow,
+		streamingText,
+	] );
 
 	return (
 		<div className="wp-agentic-admin-chat-container">
