@@ -11,7 +11,7 @@
  * Plugin Name: WP Agentic Admin
  * Plugin URI: https://pluginslab.com/wp-agentic-admin
  * Description: A privacy-first AI Site Reliability Engineer running entirely in the browser. Uses WebAssembly and WebGPU to execute Small Language Models locally, transforming WP-Admin into a natural language command center via the WordPress Abilities API.
- * Version: 0.4.2
+ * Version: 0.4.3
  * Author: Pluginslab
  * Author URI: https://pluginslab.com
  * License: GPL-2.0-or-later

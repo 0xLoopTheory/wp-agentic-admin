@@ -3,13 +3,9 @@
  *
  * Implements the ReAct (Reasoning + Acting) pattern where the LLM:
  * 1. Reasons about what to do next
- * 2. Selects a tool (via function calling OR prompt-based JSON)
+ * 2. Selects a tool via prompt-based JSON
  * 3. Observes the result
  * 4. Repeats until task is complete
- *
- * Supports two modes:
- * - Function calling (for models with native FC support)
- * - Prompt-based JSON (fallback for models without FC or with FC limitations)
  *
  * @since 0.1.0
  */
@@ -57,8 +53,6 @@ class ReactAgent {
 		this.modelLoader = modelLoader;
 		this.toolRegistry = toolRegistry;
 		this.config = { ...REACT_CONFIG, ...options };
-		this.useFunctionCalling = null; // Auto-detect on first run
-
 		// Callbacks for UI integration
 		this.callbacks = {
 			onToolStart: () => {},
@@ -84,7 +78,6 @@ class ReactAgent {
 	 * - Max iterations reached
 	 * - Error occurs
 	 *
-	 * Automatically detects and uses function calling or prompt-based approach.
 	 *
 	 * @param {string} userMessage         - The user's request
 	 * @param {Array}  conversationHistory - Previous messages (for context)
@@ -106,226 +99,14 @@ class ReactAgent {
 			};
 		}
 
-		// Determine tool calling mode if not yet set
-		if ( this.useFunctionCalling === null ) {
-			// Auto-detect function calling support
-			{
-				try {
-					log.info( 'Testing function calling support...' );
-					await engine.chat.completions.create( {
-						messages: [ { role: 'user', content: 'test' } ],
-						tools: [
-							{
-								type: 'function',
-								function: {
-									name: 'test',
-									description: 'test',
-								},
-							},
-						],
-						tool_choice: 'none',
-						max_tokens: 1,
-					} );
-					this.useFunctionCalling = true;
-					log.info(
-						'Function calling supported - using native function calling mode'
-					);
-				} catch ( error ) {
-					const errorMessage = error?.message || String( error );
-					if (
-						errorMessage.includes(
-							'not supported for ChatCompletionRequest.tools'
-						)
-					) {
-						this.useFunctionCalling = false;
-						log.info(
-							'Function calling not supported - using prompt-based mode'
-						);
-					} else {
-						log.error(
-							'Function calling test failed with unexpected error:',
-							error
-						);
-						throw error;
-					}
-				}
-			}
-		}
-
-		// Route to appropriate execution mode
-		let result;
-		if ( this.useFunctionCalling ) {
-			result = await this.executeWithFunctionCalling(
-				userMessage,
-				conversationHistory
-			);
-		} else {
-			result = await this.executeWithPromptBased(
-				userMessage,
-				conversationHistory
-			);
-		}
+		const result = await this.executeWithPromptBased(
+			userMessage,
+			conversationHistory
+		);
 
 		// Store last result for test observability
 		this.lastResult = result;
 		return result;
-	}
-
-	/**
-	 * Execute ReAct loop using native function calling
-	 *
-	 * @param {string} userMessage         - The user's request
-	 * @param {Array}  conversationHistory - Previous messages
-	 * @return {Promise<ReactResult>} Result with tools used, iterations, and final answer.
-	 */
-	async executeWithFunctionCalling( userMessage, conversationHistory ) {
-		const engine = this.modelLoader.getEngine();
-		const toolDefinitions = this.buildToolDefinitions();
-
-		const observations = [];
-		const toolsUsed = [];
-		let iteration = 0;
-
-		const messages = [];
-		const systemPrompt = this.buildSystemPromptFunctionCalling();
-		messages.push( { role: 'system', content: systemPrompt } );
-		messages.push( ...conversationHistory );
-		messages.push( { role: 'user', content: userMessage } );
-
-		while ( iteration < this.config.maxIterations ) {
-			iteration++;
-			log.debug(
-				`ReAct iteration ${ iteration }/${ this.config.maxIterations } (function calling mode)`
-			);
-
-			try {
-				const response = await engine.chat.completions.create( {
-					messages,
-					tools: toolDefinitions,
-					tool_choice: 'auto',
-					temperature: this.config.temperature,
-					max_tokens: this.config.maxTokens,
-				} );
-
-				const choice = response.choices[ 0 ];
-				const message = choice.message;
-
-				// Case 1: LLM wants to call a tool
-				if ( message.tool_calls && message.tool_calls.length > 0 ) {
-					const toolCall = message.tool_calls[ 0 ];
-					const toolName = toolCall.function.name;
-					const toolArgs = JSON.parse(
-						toolCall.function.arguments || '{}'
-					);
-
-					log.info( `LLM called tool: ${ toolName }`, toolArgs );
-
-					const toolResult = await this.executeTool(
-						toolName,
-						toolArgs,
-						userMessage
-					);
-
-					toolsUsed.push( toolName );
-					observations.push( {
-						tool: toolName,
-						args: toolArgs,
-						result: toolResult,
-					} );
-
-					messages.push( {
-						role: 'assistant',
-						content: null,
-						tool_calls: [ toolCall ],
-					} );
-					// In function calling mode, include the interpretation
-					// in the tool result content so the LLM sees it directly.
-					const toolContent = toolResult.result_for_llm
-						? `${ toolResult.result_for_llm }\n\n${ JSON.stringify( toolResult ) }`
-						: JSON.stringify( toolResult );
-					messages.push( {
-						role: 'tool',
-						tool_call_id: toolCall.id,
-						content: toolContent,
-					} );
-
-					continue;
-				}
-
-				// Case 2: LLM provided final answer
-				if ( message.content ) {
-					log.info( 'LLM provided final answer' );
-					return {
-						success: true,
-						finalAnswer: message.content,
-						iterations: iteration,
-						toolsUsed,
-						observations,
-					};
-				}
-
-				// Case 3: Unexpected response
-				log.warn(
-					'Unexpected LLM response (no content or tool calls)'
-				);
-				return {
-					success: false,
-					finalAnswer:
-						'I encountered an issue and cannot complete this task.',
-					iterations: iteration,
-					toolsUsed,
-					observations,
-					error: 'Empty LLM response',
-				};
-			} catch ( error ) {
-				const errorMessage = error?.message || String( error );
-
-				// Handle context window exceeded
-				if (
-					errorMessage.includes( 'ContextWindowSizeExceededError' ) ||
-					errorMessage.includes( 'context window size' )
-				) {
-					log.error(
-						'Context window exceeded. Providing summary of what we found so far.'
-					);
-
-					const summary = this.buildSummaryFromObservations(
-						observations,
-						userMessage
-					);
-					return {
-						success: true,
-						finalAnswer: summary,
-						iterations: iteration,
-						toolsUsed,
-						observations,
-						error: 'Context window exceeded (handled gracefully)',
-					};
-				}
-
-				log.error( 'ReAct loop error:', error );
-				return {
-					success: false,
-					finalAnswer: `I encountered an error: ${ errorMessage }`,
-					iterations: iteration,
-					toolsUsed,
-					observations,
-					error: errorMessage,
-				};
-			}
-		}
-
-		// Max iterations reached
-		log.warn( 'Max iterations reached' );
-		return {
-			success: false,
-			finalAnswer:
-				'I reached the maximum number of steps. Please try rephrasing your request or break it into smaller tasks.',
-			iterations: iteration,
-			toolsUsed,
-			observations,
-			error: 'Max iterations exceeded',
-		};
 	}
 
 	/**
@@ -485,7 +266,10 @@ class ReactAgent {
 					} );
 					messages.push( {
 						role: 'user',
-						content: this.buildToolResultMessage( toolResult, truncatedResult ),
+						content: this.buildToolResultMessage(
+							toolResult,
+							truncatedResult
+						),
 					} );
 
 					continue;
@@ -495,12 +279,13 @@ class ReactAgent {
 				if ( action.action === 'final_answer' ) {
 					log.info( 'LLM provided final answer' );
 					let answer =
-						action.content ||
-						action.answer ||
-						'Task completed.';
+						action.content || action.answer || 'Task completed.';
 
 					// Unwrap double-encoded JSON envelope if model wrapped the answer twice
-					if ( typeof answer === 'string' && answer.trim().startsWith( '{' ) ) {
+					if (
+						typeof answer === 'string' &&
+						answer.trim().startsWith( '{' )
+					) {
 						try {
 							const inner = JSON.parse( answer );
 							if ( inner.content ) {
@@ -918,28 +703,6 @@ class ReactAgent {
 	}
 
 	/**
-	 * Build system prompt for function calling mode
-	 *
-	 * @return {string} System prompt
-	 */
-	buildSystemPromptFunctionCalling() {
-		const tools = this.toolRegistry.getAll();
-
-		return `You are a WordPress assistant. Call tools one at a time to help users. Answer directly if no tool is needed.
-
-RULES:
-- Call ONE tool per step, wait for the result before continuing
-- Summarize tool results for humans, never copy raw data
-- If a tool fails, explain the error clearly
-- Never retry a failed tool or invent tool names
-
-EXAMPLES:
-"list my plugins" -> call plugin-list -> summarize results
-"my site is slow" -> call site-health -> if DB is large, call db-optimize -> summarize
-"what is a transient?" -> answer directly (no tool needed)`;
-	}
-
-	/**
 	 * Build system prompt for prompt-based mode
 	 *
 	 * @return {string} System prompt with JSON instructions
@@ -977,28 +740,6 @@ User: "list plugins"
 
 User: "what is a transient?"
 {"action": "final_answer", "content": "A transient is temporary cached data in WordPress..."}`;
-	}
-
-	/**
-	 * Build tool definitions for function calling
-	 *
-	 * @return {Array} Tool definitions in OpenAI format
-	 */
-	buildToolDefinitions() {
-		const tools = this.toolRegistry.getAll();
-
-		return tools.map( ( tool ) => ( {
-			type: 'function',
-			function: {
-				name: tool.id,
-				description: tool.description || tool.label || tool.id,
-				parameters: {
-					type: 'object',
-					properties: tool.parameters || {},
-					required: tool.requiredParameters || [],
-				},
-			},
-		} ) );
 	}
 }
 

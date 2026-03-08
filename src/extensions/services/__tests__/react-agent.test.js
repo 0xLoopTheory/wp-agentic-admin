@@ -83,10 +83,6 @@ describe( 'ReactAgent', () => {
 		// Create agent
 		reactAgent = new ReactAgent( mockModelLoader, mockToolRegistry );
 		reactAgent.setCallbacks( mockCallbacks );
-
-		// Skip capability detection by setting the flag directly
-		reactAgent.useFunctionCalling = false;
-		reactAgent.hasTestedCapabilities = true;
 	} );
 
 	afterEach( () => {
