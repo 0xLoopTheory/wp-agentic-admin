@@ -7,8 +7,8 @@
 	<h1>Ability Test Harness</h1>
 	<pre id="log"></pre>
 
-	<!-- Load the test harness bundle (includes TransformersEngine + ReactAgent + ToolRegistry) -->
-	<script src="../../build-extensions/test-harness.js"></script>
+	<!-- Load the test harness bundle (includes WebLLM + ReactAgent + ToolRegistry) -->
+	<script src="../../build-test-harness/test-harness.js"></script>
 	<script>
 		/**
 		 * Test harness runtime.
@@ -20,7 +20,12 @@
 			console.log( '[TestHarness]', msg );
 		};
 
-		// Model loader shim — wraps transformers.js model with the interface ReactAgent expects
+		/**
+		 * Model loader shim — wraps WebLLM engine with the interface ReactAgent expects.
+		 *
+		 * ReactAgent calls modelLoader.getEngine() to get an OpenAI-compatible engine.
+		 * WebLLM's CreateMLCEngine returns exactly that.
+		 */
 		class TestModelLoader {
 			constructor() {
 				this.engine = null;
@@ -28,43 +33,26 @@
 			getEngine() {
 				return this.engine;
 			}
-			async load( modelId, onProgress ) {
+			isModelReady() {
+				return this.engine !== null;
+			}
+			async load( modelId ) {
 				log( `Loading model: ${ modelId }...` );
 
-				const { AutoModelForCausalLM, AutoTokenizer, TransformersEngine } = window.TestHarness;
-
-				log( 'Loading tokenizer...' );
-				const tokenizer = await AutoTokenizer.from_pretrained( modelId );
-
-				log( 'Loading model weights...' );
-				const device = navigator.gpu ? 'webgpu' : 'wasm';
-				log( `  Device: ${ device }` );
+				const { webllm } = window.TestHarness;
 				let lastPct = -1;
 
-				let model;
-				try {
-					model = await AutoModelForCausalLM.from_pretrained( modelId, {
-						dtype: 'q4',
-						device,
-						progress_callback: ( progress ) => {
-							if ( onProgress ) onProgress( progress );
-							if ( progress.status === 'progress' && progress.progress ) {
-								const pct = Math.round( progress.progress / 10 ) * 10;
-								if ( pct !== lastPct ) {
-									lastPct = pct;
-									log( `  ${ pct }% - downloading ${ progress.file || '' }` );
-								}
-							}
-						},
-					} );
-				} catch ( err ) {
-					log( `Model load error: ${ err.message || err }` );
-					throw err;
-				}
+				this.engine = await webllm.CreateMLCEngine( modelId, {
+					initProgressCallback: ( report ) => {
+						const pct = Math.round( report.progress * 100 );
+						if ( pct !== lastPct && pct % 10 === 0 ) {
+							lastPct = pct;
+							log( `  ${ pct }% - ${ report.text || '' }` );
+						}
+					},
+				} );
 
-				// Create the engine adapter
-				this.engine = new TransformersEngine( model, tokenizer );
-				log( `Model loaded. Tool calling support: ${ this.engine.supportsTools }` );
+				log( 'Model loaded and ready.' );
 			}
 		}
 

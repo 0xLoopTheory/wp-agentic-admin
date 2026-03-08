@@ -33,7 +33,7 @@ if ( fileIndex === -1 || ! args[ fileIndex + 1 ] ) {
 	console.error( '' );
 	console.error( 'Options:' );
 	console.error( '  --file <path>       Path to test file (required)' );
-	console.error( '  --model <id>        Model ID (default: onnx-community/Qwen2.5-1.5B-Instruct)' );
+	console.error( '  --model <id>        Model ID (default: Qwen3-1.7B-q4f16_1-MLC)' );
 	console.error( '  --harness <path>    Path to wp-agentic-admin plugin directory' );
 	console.error( '                      (auto-detected from test file location if omitted)' );
 	console.error( '' );
@@ -46,7 +46,7 @@ if ( fileIndex === -1 || ! args[ fileIndex + 1 ] ) {
 const testFilePath = path.resolve( args[ fileIndex + 1 ] );
 const modelId = modelIndex !== -1 && args[ modelIndex + 1 ]
 	? args[ modelIndex + 1 ]
-	: 'onnx-community/Qwen2.5-1.5B-Instruct';
+	: 'Qwen3-1.7B-q4f16_1-MLC';
 
 if ( ! fs.existsSync( testFilePath ) ) {
 	console.error( `Test file not found: ${ testFilePath }` );
@@ -68,17 +68,17 @@ function resolvePluginRoot( testFile ) {
 	// 1. Explicit --harness flag
 	if ( harnessIndex !== -1 && args[ harnessIndex + 1 ] ) {
 		const explicit = path.resolve( args[ harnessIndex + 1 ] );
-		if ( fs.existsSync( path.join( explicit, 'build-extensions/test-harness.js' ) ) ) {
+		if ( fs.existsSync( path.join( explicit, 'build-test-harness/test-harness.js' ) ) ) {
 			return explicit;
 		}
 		console.error( `Harness not found at: ${ explicit }` );
-		console.error( 'Expected build-extensions/test-harness.js inside that directory.' );
+		console.error( 'Expected build-test-harness/test-harness.js inside that directory.' );
 		process.exit( 1 );
 	}
 
 	// 2. Runner's own location (this file lives in wp-agentic-admin/tests/abilities/)
 	const runnerRoot = path.resolve( __dirname, '../..' );
-	if ( fs.existsSync( path.join( runnerRoot, 'build-extensions/test-harness.js' ) ) ) {
+	if ( fs.existsSync( path.join( runnerRoot, 'build-test-harness/test-harness.js' ) ) ) {
 		return runnerRoot;
 	}
 
@@ -88,7 +88,7 @@ function resolvePluginRoot( testFile ) {
 		const basename = path.basename( dir );
 		if ( basename === 'plugins' ) {
 			const candidate = path.join( dir, 'wp-agentic-admin' );
-			if ( fs.existsSync( path.join( candidate, 'build-extensions/test-harness.js' ) ) ) {
+			if ( fs.existsSync( path.join( candidate, 'build-test-harness/test-harness.js' ) ) ) {
 				return candidate;
 			}
 		}
@@ -111,10 +111,10 @@ if ( ! pluginRoot ) {
 }
 
 const testPagePath = path.resolve( pluginRoot, 'tests/abilities/test-page.html' );
-const buildPath = path.resolve( pluginRoot, 'build-extensions/test-harness.js' );
+const buildPath = path.resolve( pluginRoot, 'build-test-harness/test-harness.js' );
 
 if ( ! fs.existsSync( buildPath ) ) {
-	console.error( 'Test harness not built. Run `npm run build` first.' );
+	console.error( 'Test harness not built. Run `npm run build:test-harness` first.' );
 	process.exit( 1 );
 }
 

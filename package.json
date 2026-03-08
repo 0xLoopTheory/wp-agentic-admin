@@ -5,6 +5,8 @@
   "scripts": {
     "build": "npm run build:extensions",
     "build:extensions": "wp-scripts build src/extensions/index.js --output-path=build-extensions",
+    "build:test-harness": "BUILD_TARGET=test-harness wp-scripts build",
+    "test:abilities": "npm run build:test-harness && node tests/abilities/runner.js",
     "watch": "wp-scripts start src/extensions/index.js --output-path=build-extensions",
     "clean": "del-cli build-extensions wp-agentic-admin.zip",
     "dist": "npm run clean && npm run build && rm -f wp-agentic-admin.zip && zip -r wp-agentic-admin.zip -@ < .distpackage",
@@ -21,7 +23,8 @@
   },
   "devDependencies": {
     "@wordpress/scripts": "^27.0.0",
-    "del-cli": "^5.1.0"
+    "del-cli": "^5.1.0",
+    "puppeteer": "^24.38.0"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.80",
