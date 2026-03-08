@@ -183,6 +183,56 @@ Even in function calling mode (structured `tools` array), 100+ tool definitions 
 
 ---
 
+### 10. transformers.js / ONNX Runtime as Alternative Engine
+**Status:** Explored, partially working. Parked in favor of WebLLM for now.
+
+**What works:**
+- transformers.js (@huggingface/transformers 3.8.1) loads `Qwen2.5-0.5B-Instruct` (q4, ~350MB) on WebGPU
+- Service Worker persistence with WASM backend — model survives page navigation
+- Auto-reconnect on page load (no re-download)
+- OpenAI-compatible adapter (`TransformersEngine`) with native function calling via Qwen chat template
+- WebGPU → WASM graceful fallback
+
+**What doesn't work:**
+- Models ≥1.5B fail with `Aborted()` during ONNX Runtime session creation
+- Both WebGPU and WASM backends fail — ORT loads entire ONNX protobuf into WASM heap
+- The bundled `onnxruntime-web@1.22.0-dev` (Emscripten WASM) hits memory limits with files >~500MB
+
+**Why it matters:**
+- transformers.js gives native function calling via Qwen chat templates (no prompt-based JSON hacking)
+- Service Worker persistence is a major UX win (WebLLM doesn't have this)
+- `engine.supportsTools` auto-detection from tokenizer chat template
+
+**Why WebLLM still wins (for now):**
+- WebLLM uses TVM compiled to WebGPU shaders — weights go directly to GPU, bypassing WASM entirely
+- Successfully loads 7B models (~5GB VRAM) on the same hardware
+- No WASM memory bottleneck
+
+**Investigation leads for hackathon:**
+- The `tantara/transformers.js-chrome` reference repo loads `Qwen2.5-1.5B-Instruct` (q4f16) successfully with the same stack. Their Chrome extension environment (Plasmo bundler, clean context) differs from our WordPress admin (webpack, heavy page).
+- Try `use_external_data_format: true` — splits ONNX graph from weights, may avoid WASM heap issue
+- Try `transformers.js@4.0.0-next` which ships `onnxruntime-web@1.25` (newer, potentially fixed)
+- Test in a minimal HTML page (not wp-admin) to isolate whether WordPress memory pressure is the culprit
+- Compare webpack WASM handling with Plasmo bundler config
+- Consider hybrid: WebLLM for inference, transformers.js for tokenizer/chat template only
+
+**Key files (on the `transformers-js-experiment` branch, if preserved):**
+- `src/extensions/services/model-loader.js` — env config, WebGPU/WASM fallback, SW auto-reconnect
+- `src/extensions/services/transformers-engine.js` — OpenAI-compatible adapter
+- `src/extensions/sw.js` — Service Worker with WASM backend
+- `src/extensions/services/sw-engine.js` — Client-side SW proxy
+
+**Critical env configuration (must be static import, module level):**
+```js
+import { env } from '@huggingface/transformers';
+env.allowLocalModels = false;
+env.backends.onnx.wasm.numThreads = 1;
+env.backends.onnx.wasm.wasmPaths = undefined;
+env.backends.onnx.wasm.proxy = false;
+```
+
+---
+
 ## 🔬 Research & Experimental Ideas
 
 ### RAG (Retrieval-Augmented Generation)

@@ -146,7 +146,7 @@ class Admin_Page {
 			'nonce'               => wp_create_nonce( 'wp_rest' ),
 			'userId'              => get_current_user_id(),
 			'pluginUrl'           => esc_url( WP_AGENTIC_ADMIN_PLUGIN_URL ),
-			'swUrl'               => esc_url( WP_AGENTIC_ADMIN_PLUGIN_URL . 'build-extensions/sw-loader.php' ),
+			'swUrl'               => esc_url( WP_AGENTIC_ADMIN_PLUGIN_URL . 'sw-loader.php' ),
 			'version'             => WP_AGENTIC_ADMIN_VERSION,
 			'hasPrettyPermalinks' => $this->has_pretty_permalinks(),
 			'permalinksUrl'       => esc_url( admin_url( 'options-permalink.php' ) ),

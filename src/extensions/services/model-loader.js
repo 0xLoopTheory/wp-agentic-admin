@@ -298,14 +298,14 @@ class ModelLoader {
 			typeof window.wpAgenticAdmin !== 'undefined' &&
 			window.wpAgenticAdmin.pluginUrl
 		) {
-			return `${ window.wpAgenticAdmin.pluginUrl }build-extensions/sw-loader.php`;
+			return `${ window.wpAgenticAdmin.pluginUrl }sw-loader.php`;
 		}
 
 		// Fallback: relative path to PHP loader
 		console.warn(
 			'[ModelLoader] wpAgenticAdmin.pluginUrl not found, using relative path'
 		);
-		return '/wp-content/plugins/wp-agentic-admin/build-extensions/sw-loader.php';
+		return '/wp-content/plugins/wp-agentic-admin/sw-loader.php';
 	}
 
 	/**

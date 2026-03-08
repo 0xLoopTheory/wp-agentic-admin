@@ -1,5 +1,6 @@
 includes/
 wp-agentic-admin.php
+sw-loader.php
 uninstall.php
 readme.txt
 build-extensions/

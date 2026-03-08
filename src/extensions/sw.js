@@ -15,13 +15,14 @@
  * - Shared model instance across multiple tabs
  *
  * @since 0.1.0
- * @version 1.3.102
+ * @version 0.4.101
  */
 
 import { ServiceWorkerMLCEngineHandler } from '@mlc-ai/web-llm';
 
-// Service Worker Version - increment this to force reload
-const SW_VERSION = '1.3.102';
+// Service Worker Version - based on plugin version (0.4.1) with sub-version for cache busting
+// Format: {major}.{minor}.{patch}{sub} — increment sub-version to force SW reload without plugin bump
+const SW_VERSION = '0.4.101';
 
 /**
  * Log helper with timestamp
