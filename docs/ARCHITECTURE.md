@@ -341,8 +341,10 @@ The 1.7B model is recommended for most users — it loads faster, uses less VRAM
 - **Thinking UI:** Thinking tokens stream live in the chat interface — shown expanded with a purple pulsing timeline dot while generating, then collapsed into a peekable "Thought process" entry (same pattern as tool call results). Users can click to expand/peek at the reasoning at any time
 - **Thinking persistence:** Completed thinking blocks are persisted as `THINKING` message type in the session, appearing in the chat timeline alongside tool calls and responses
 - **Streaming in both paths:** Both the ReAct loop (switched to streaming LLM calls) and the conversational path stream thinking via `onThinkingStart/Chunk/End` callbacks
-- For clear action commands (keyword + action verb), thinking is disabled via `/nothink` — saves ~8-10s per interaction
-- For ambiguous inputs (keyword only, no clear action), thinking remains enabled for accurate tool selection
+- **Per-iteration thinking control:** Thinking is disabled at two levels:
+  - **Router-level:** For clear action commands (keyword + action verb), thinking is disabled via `/nothink` on the system prompt — saves ~8-10s per interaction
+  - **Post-tool:** After tool results are available (`disableThinkingAfterTool: true` in config), `/nothink` is appended to tool result messages. The LLM has concrete data and only needs to summarize, so reasoning is unnecessary. This saves ~8-10s on the final answer generation. Empty `<think>` blocks are suppressed from the UI
+- For ambiguous inputs (keyword only, no clear action), thinking remains enabled on the first iteration for accurate tool selection
 - Tool selection accuracy is 100% with thinking disabled on clear action commands (verified via ability test harness)
 
 ### Dual-Mode Support
