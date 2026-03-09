@@ -393,11 +393,19 @@ See [tests/TESTING.md](../tests/TESTING.md) for the full testing guide.
 - Test observability hook (`window.__wpAgenticTestHook`)
 - 4 workflows tested at 100% pass rate
 
-**v0.4.0 (current):**
+**v0.4.0:**
 - Added Qwen 3 1.7B as default model — 93% E2E accuracy, ~3x faster inference
 - Qwen 2.5 7B retained as alternative for advanced reasoning
 - Multi-model support — users can choose from dropdown
 - Model preference persisted in localStorage
+
+**v0.5.0 (current):**
+- 3-tier message routing: workflow → ReAct (with/without thinking) → conversational
+- Thinking blocks stream live in the chat UI, then collapse into peekable timeline entries
+- ReAct switched to streaming LLM calls for live thinking display
+- Post-tool `/nothink` optimization — thinking disabled after tool results for faster answers
+- Per-message speed stats (prefill/decode tokens per second)
+- `THINKING` message type persisted in session alongside tool calls
 
 **Future Enhancements:**
 - Expanded abilities library (16+ new abilities proposed)
