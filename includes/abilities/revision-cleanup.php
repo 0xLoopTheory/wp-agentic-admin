@@ -5,6 +5,7 @@
  * Deletes old post revisions to clean up the database.
  * Similar to WP-CLI: wp post delete $(wp post list --post_type=revision --format=ids)
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since 0.1.0
  */

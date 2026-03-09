@@ -7,7 +7,10 @@
  */
 
 // WP-Agentic-Admin custom abilities
+import { createLogger } from '../utils/logger';
 import { registerErrorLogRead } from './error-log-read';
+
+const log = createLogger( 'Abilities' );
 import { registerCacheFlush } from './cache-flush';
 import { registerDbOptimize } from './db-optimize';
 import { registerPluginList } from './plugin-list';
@@ -67,9 +70,7 @@ export function registerAllAbilities() {
 	registerCoreSiteInfo();
 	registerCoreEnvironmentInfo();
 
-	console.log(
-		'[Abilities] All abilities registered (including WordPress core wrappers)'
-	);
+	log.info( 'All abilities registered (including WordPress core wrappers)' );
 }
 
 export default registerAllAbilities;

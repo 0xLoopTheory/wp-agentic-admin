@@ -22,6 +22,9 @@
 import toolRegistry from './tool-registry';
 import abilitiesApi from './abilities-api';
 import workflowRegistry from './workflow-registry';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'AgenticAbilitiesAPI' );
 
 /**
  * Register a agentic ability with the chat system.
@@ -50,16 +53,14 @@ import workflowRegistry from './workflow-registry';
  */
 function registerAbility( id, config = {} ) {
 	if ( ! id || typeof id !== 'string' ) {
-		console.error(
-			'[AgenticAbilitiesAPI] registerAbility: id must be a non-empty string'
-		);
+		log.error( 'registerAbility: id must be a non-empty string' );
 		return false;
 	}
 
 	// Validate ID format (namespace/ability-name)
 	if ( ! /^[a-z0-9-]+\/[a-z0-9-]+$/.test( id ) ) {
-		console.error(
-			`[AgenticAbilitiesAPI] registerAbility: Invalid ID format "${ id }". Must be "namespace/ability-name".`
+		log.error(
+			`registerAbility: Invalid ID format "${ id }". Must be "namespace/ability-name".`
 		);
 		return false;
 	}
@@ -70,7 +71,7 @@ function registerAbility( id, config = {} ) {
 	// Register with the tool registry
 	toolRegistry.register( toolConfig );
 
-	console.log( `[AgenticAbilitiesAPI] Registered ability: ${ id }` );
+	log.info( `Registered ability: ${ id }` );
 	return true;
 }
 
@@ -84,7 +85,7 @@ function unregisterAbility( id ) {
 	const removed = toolRegistry.unregister( id );
 
 	if ( removed ) {
-		console.log( `[AgenticAbilitiesAPI] Unregistered ability: ${ id }` );
+		log.info( `Unregistered ability: ${ id }` );
 	}
 
 	return removed;
@@ -245,24 +246,20 @@ function buildToolConfig( id, jsConfig ) {
  */
 function registerWorkflow( id, config = {} ) {
 	if ( ! id || typeof id !== 'string' ) {
-		console.error(
-			'[AgenticAbilitiesAPI] registerWorkflow: id must be a non-empty string'
-		);
+		log.error( 'registerWorkflow: id must be a non-empty string' );
 		return false;
 	}
 
 	// Validate ID format (namespace/workflow-name)
 	if ( ! /^[a-z0-9-]+\/[a-z0-9-]+$/.test( id ) ) {
-		console.error(
-			`[AgenticAbilitiesAPI] registerWorkflow: Invalid ID format "${ id }". Must be "namespace/workflow-name".`
+		log.error(
+			`registerWorkflow: Invalid ID format "${ id }". Must be "namespace/workflow-name".`
 		);
 		return false;
 	}
 
 	if ( ! config.label ) {
-		console.error(
-			`[AgenticAbilitiesAPI] registerWorkflow: workflow "${ id }" must have a label`
-		);
+		log.error( `registerWorkflow: workflow "${ id }" must have a label` );
 		return false;
 	}
 
@@ -271,8 +268,8 @@ function registerWorkflow( id, config = {} ) {
 		! Array.isArray( config.steps ) ||
 		config.steps.length === 0
 	) {
-		console.error(
-			`[AgenticAbilitiesAPI] registerWorkflow: workflow "${ id }" must have at least one step`
+		log.error(
+			`registerWorkflow: workflow "${ id }" must have at least one step`
 		);
 		return false;
 	}
@@ -280,8 +277,8 @@ function registerWorkflow( id, config = {} ) {
 	// Validate each step references a valid ability
 	for ( const step of config.steps ) {
 		if ( ! step.abilityId ) {
-			console.error(
-				`[AgenticAbilitiesAPI] registerWorkflow: each step in "${ id }" must have an abilityId`
+			log.error(
+				`registerWorkflow: each step in "${ id }" must have an abilityId`
 			);
 			return false;
 		}
@@ -293,15 +290,12 @@ function registerWorkflow( id, config = {} ) {
 			id,
 			...config,
 		} );
-		console.log(
-			`[AgenticAbilitiesAPI] Registered workflow: ${ id } (${ config.steps.length } steps)`
+		log.info(
+			`Registered workflow: ${ id } (${ config.steps.length } steps)`
 		);
 		return true;
 	} catch ( error ) {
-		console.error(
-			`[AgenticAbilitiesAPI] registerWorkflow error:`,
-			error.message
-		);
+		log.error( `registerWorkflow error:`, error.message );
 		return false;
 	}
 }
@@ -316,7 +310,7 @@ function unregisterWorkflow( id ) {
 	const removed = workflowRegistry.unregister( id );
 
 	if ( removed ) {
-		console.log( `[AgenticAbilitiesAPI] Unregistered workflow: ${ id }` );
+		log.info( `Unregistered workflow: ${ id }` );
 	}
 
 	return removed;
@@ -390,9 +384,7 @@ function exposeGlobalAPI() {
 	window.wp.agenticAdmin.getWorkflows = getWorkflows;
 	window.wp.agenticAdmin.hasWorkflow = hasWorkflow;
 
-	console.log(
-		'[AgenticAbilitiesAPI] Global API exposed at wp.agenticAdmin (v1.1 with Workflows)'
-	);
+	log.info( 'Global API exposed at wp.agenticAdmin (v1.1 with Workflows)' );
 }
 
 // Export functions

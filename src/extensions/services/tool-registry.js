@@ -5,6 +5,10 @@
  * configuration including keywords for detection, messages, and handlers.
  */
 
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'ToolRegistry' );
+
 /**
  * @typedef {Object} ToolAnnotations
  * @property {boolean} [readOnly]    - Whether the tool only reads data (default: true)
@@ -57,9 +61,7 @@ class ToolRegistry {
 		}
 
 		if ( this.tools.has( tool.id ) ) {
-			console.warn(
-				`[ToolRegistry] Overwriting existing tool: ${ tool.id }`
-			);
+			log.warn( `Overwriting existing tool: ${ tool.id }` );
 		}
 
 		// Set defaults
@@ -80,7 +82,7 @@ class ToolRegistry {
 		};
 
 		this.tools.set( tool.id, toolWithDefaults );
-		console.log( `[ToolRegistry] Registered tool: ${ tool.id }` );
+		log.info( `Registered tool: ${ tool.id }` );
 	}
 
 	/**

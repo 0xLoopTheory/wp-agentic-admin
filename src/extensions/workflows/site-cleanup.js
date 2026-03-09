@@ -71,19 +71,7 @@ export function registerSiteCleanupWorkflow() {
 						return true;
 					}
 
-					// Otherwise, check site health data for last optimization time
-					// Note: We'd need to add last_db_optimized to site-health ability
-					// For now, use a simple heuristic: optimize every time unless they just did it
-
-					// TODO: Track last optimization time in site-health result
-					// const healthResult = previousResults.find(r => r.abilityId === 'wp-agentic-admin/site-health');
-					// const lastOptimized = healthResult?.result?.last_db_optimized;
-					// if (lastOptimized) {
-					// const daysSince = (Date.now() - new Date(lastOptimized)) / (1000 * 60 * 60 * 24);
-					// return daysSince > 7; // Only if more than 7 days ago
-					// }
-
-					// Default: always optimize (for now, until we track last optimization)
+					// Always run optimization as part of cleanup workflow.
 					return true;
 				},
 			},

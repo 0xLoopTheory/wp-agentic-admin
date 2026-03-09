@@ -4,6 +4,7 @@
  *
  * Flushes the WordPress object cache.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

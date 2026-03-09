@@ -4,6 +4,7 @@
  *
  * Reads recent entries from the WordPress debug.log file.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

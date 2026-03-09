@@ -4,6 +4,7 @@
  *
  * Common functionality used across plugin-related abilities to avoid code duplication.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

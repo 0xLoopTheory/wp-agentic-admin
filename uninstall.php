@@ -2,6 +2,7 @@
 /**
  * Uninstall script
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

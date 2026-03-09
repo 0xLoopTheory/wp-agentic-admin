@@ -33,6 +33,9 @@ import { registerSiteCleanupWorkflow } from './site-cleanup';
 import { registerPerformanceCheckWorkflow } from './performance-check';
 import { registerPluginAuditWorkflow } from './plugin-audit';
 import { registerDatabaseMaintenanceWorkflow } from './database-maintenance';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'Workflows' );
 
 // Re-export individual functions for external use
 export { registerSiteCleanupWorkflow } from './site-cleanup';
@@ -56,7 +59,7 @@ export function registerAllWorkflows() {
 	registerPluginAuditWorkflow();
 	registerDatabaseMaintenanceWorkflow();
 
-	console.log( '[Workflows] All built-in workflows registered' );
+	log.info( 'All built-in workflows registered' );
 }
 
 export default registerAllWorkflows;

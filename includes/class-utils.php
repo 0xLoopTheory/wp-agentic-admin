@@ -2,6 +2,7 @@
 /**
  * Utils class
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

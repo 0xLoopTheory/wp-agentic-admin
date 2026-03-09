@@ -220,7 +220,7 @@ AI: [Executing: site-health]
 | Document | Description |
 |----------|-------------|
 | [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) | Design principles and ReAct loop architecture |
-| [**IDEAS.md**](IDEAS.md) | Feature ideas and future possibilities |
+| [**CLOUDFEST_HACKATHON.md**](CLOUDFEST_HACKATHON.md) | Feature ideas and future possibilities |
 | [Abilities Guide](docs/ABILITIES-GUIDE.md) | How to create new abilities |
 | [Workflows Guide](docs/WORKFLOWS-GUIDE.md) | How to create multi-step workflows |
 | [Third-Party Integration](docs/THIRD-PARTY-INTEGRATION.md) | Extending with custom plugins |
@@ -309,7 +309,7 @@ WP Agentic Admin aims to make WordPress site management accessible through natur
 3. **Smart Reasoning** - ReAct loop to bridge natural language with technical operations
 4. **Community-Driven** - Open development with transparent roadmap and contributor recognition
 
-See [IDEAS.md](IDEAS.md) for our feature roadmap and future plans.
+See [CLOUDFEST_HACKATHON.md](CLOUDFEST_HACKATHON.md) for our feature roadmap and future plans.
 
 ## Community & Support
 

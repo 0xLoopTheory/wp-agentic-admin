@@ -5,6 +5,7 @@
  * Deletes expired or all transients from the database.
  * Similar to WP-CLI: wp transient delete --all / --expired
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since 0.1.0
  */

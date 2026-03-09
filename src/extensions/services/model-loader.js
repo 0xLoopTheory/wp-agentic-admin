@@ -11,6 +11,9 @@
  */
 
 import * as webllm from '@mlc-ai/web-llm';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'ModelLoader' );
 
 /**
  * Default model configuration
@@ -94,7 +97,7 @@ class ModelLoader {
 
 		// Check basic SW support
 		if ( ! ( 'serviceWorker' in navigator ) ) {
-			console.log( '[ModelLoader] Service Workers not supported' );
+			log.info( 'Service Workers not supported' );
 			this.swSupported = false;
 			return false;
 		}
@@ -105,8 +108,8 @@ class ModelLoader {
 			navigator.userAgent
 		);
 		if ( isSafari ) {
-			console.log(
-				'[ModelLoader] Safari detected - SW mode not supported (WebGPU unavailable in Safari SW)'
+			log.info(
+				'Safari detected - SW mode not supported (WebGPU unavailable in Safari SW)'
 			);
 			this.swSupported = false;
 			return false;
@@ -115,15 +118,13 @@ class ModelLoader {
 		// Check WebGPU support (required for WebLLM)
 		const gpuCheck = await this.checkWebGPUSupport();
 		if ( ! gpuCheck.supported ) {
-			console.log(
-				'[ModelLoader] WebGPU not supported, SW mode unavailable'
-			);
+			log.info( 'WebGPU not supported, SW mode unavailable' );
 			this.swSupported = false;
 			return false;
 		}
 
 		this.swSupported = true;
-		console.log( '[ModelLoader] Service Worker mode available' );
+		log.info( 'Service Worker mode available' );
 		return true;
 	}
 
@@ -141,9 +142,7 @@ class ModelLoader {
 		if ( ! this.swSupported ) {
 			const supported = await this.checkServiceWorkerSupport();
 			if ( ! supported ) {
-				console.log(
-					'[ModelLoader] Service Worker not supported, returning null'
-				);
+				log.info( 'Service Worker not supported, returning null' );
 				return null;
 			}
 		}
@@ -152,15 +151,9 @@ class ModelLoader {
 			// Get the SW script URL from WordPress
 			const swUrl = this.getServiceWorkerUrl();
 
-			console.log( '[ModelLoader] Registering Service Worker:', swUrl );
-			console.log(
-				'[ModelLoader] Current location:',
-				window.location.href
-			);
-			console.log(
-				'[ModelLoader] SW support checked:',
-				this.swSupported
-			);
+			log.info( 'Registering Service Worker:', swUrl );
+			log.info( 'Current location:', window.location.href );
+			log.info( 'SW support checked:', this.swSupported );
 
 			// Register with /wp-admin/ scope so SW can control admin pages
 			// The PHP backend sets Service-Worker-Allowed header to allow this broader scope
@@ -172,8 +165,8 @@ class ModelLoader {
 				}
 			);
 
-			console.log(
-				'[ModelLoader] SW registered, state:',
+			log.info(
+				'SW registered, state:',
 				// eslint-disable-next-line no-nested-ternary -- intentional status message selection
 				this.swRegistration.installing
 					? 'installing'
@@ -188,31 +181,24 @@ class ModelLoader {
 			// Don't wait for navigator.serviceWorker.ready - it may hang on first load
 			// The SW uses skipWaiting() and clients.claim() so it activates immediately
 			// WebLLM's CreateServiceWorkerMLCEngine uses postMessage and doesn't need the SW to be "controlling"
-			console.log(
-				'[ModelLoader] Service Worker registration complete, proceeding...'
-			);
+			log.info( 'Service Worker registration complete, proceeding...' );
 
-			console.log(
-				'[ModelLoader] Service Worker registered successfully'
-			);
-			console.log( '[ModelLoader] SW Scope:', this.swRegistration.scope );
-			console.log( '[ModelLoader] Page URL:', window.location.href );
-			console.log(
-				'[ModelLoader] SW controlling page?:',
+			log.info( 'Service Worker registered successfully' );
+			log.info( 'SW Scope:', this.swRegistration.scope );
+			log.info( 'Page URL:', window.location.href );
+			log.info(
+				'SW controlling page?:',
 				navigator.serviceWorker.controller ? 'YES' : 'NO'
 			);
 			if ( navigator.serviceWorker.controller ) {
-				console.log(
-					'[ModelLoader] Controller URL:',
+				log.info(
+					'Controller URL:',
 					navigator.serviceWorker.controller.scriptURL
 				);
 			}
 			return this.swRegistration;
 		} catch ( err ) {
-			console.error(
-				'[ModelLoader] Service Worker registration failed:',
-				err
-			);
+			log.error( 'Service Worker registration failed:', err );
 			this.swSupported = false;
 			return null;
 		}
@@ -226,35 +212,26 @@ class ModelLoader {
 	 * @return {Promise<ServiceWorker|null>} The active worker or null
 	 */
 	async waitForActiveWorker( registration ) {
-		console.log( '[ModelLoader] waitForActiveWorker called' );
-		console.log(
-			'[ModelLoader] registration.active:',
-			registration.active
-		);
-		console.log(
-			'[ModelLoader] registration.installing:',
-			registration.installing
-		);
-		console.log(
-			'[ModelLoader] registration.waiting:',
-			registration.waiting
-		);
+		log.info( 'waitForActiveWorker called' );
+		log.info( 'registration.active:', registration.active );
+		log.info( 'registration.installing:', registration.installing );
+		log.info( 'registration.waiting:', registration.waiting );
 
 		// If already active, return immediately
 		if ( registration.active ) {
-			console.log( '[ModelLoader] SW is already active' );
+			log.info( 'SW is already active' );
 			return registration.active;
 		}
 
 		// Poll for the SW to become active (with timeout)
-		console.log( '[ModelLoader] Polling for SW to become active...' );
+		log.info( 'Polling for SW to become active...' );
 		const startTime = Date.now();
 		const timeout = 5000; // 5 seconds
 
 		while ( Date.now() - startTime < timeout ) {
 			// Check if it's active now
 			if ( registration.active ) {
-				console.log( '[ModelLoader] SW is now active!' );
+				log.info( 'SW is now active!' );
 				return registration.active;
 			}
 
@@ -272,14 +249,11 @@ class ModelLoader {
 					registration.active
 					? 'active'
 					: 'unknown';
-				console.log(
-					'[ModelLoader] Still waiting... current state:',
-					state
-				);
+				log.info( 'Still waiting... current state:', state );
 			}
 		}
 
-		console.error( '[ModelLoader] Timeout waiting for SW to activate' );
+		log.error( 'Timeout waiting for SW to activate' );
 		return null;
 	}
 
@@ -302,9 +276,7 @@ class ModelLoader {
 		}
 
 		// Fallback: relative path to PHP loader
-		console.warn(
-			'[ModelLoader] wpAgenticAdmin.pluginUrl not found, using relative path'
-		);
+		log.warn( 'wpAgenticAdmin.pluginUrl not found, using relative path' );
 		return '/wp-content/plugins/wp-agentic-admin/sw-loader.php';
 	}
 
@@ -318,10 +290,10 @@ class ModelLoader {
 		const id = modelId || this.modelId;
 		try {
 			const isCached = await webllm.hasModelInCache( id );
-			console.log( `[ModelLoader] Model ${ id } cached:`, isCached );
+			log.info( `Model ${ id } cached:`, isCached );
 			return isCached;
 		} catch ( err ) {
-			console.warn( '[ModelLoader] Error checking cache:', err );
+			log.warn( 'Error checking cache:', err );
 			return false;
 		}
 	}
@@ -357,10 +329,10 @@ class ModelLoader {
 					info = await adapter.requestAdapterInfo();
 				}
 			} catch ( infoErr ) {
-				console.warn( 'Could not get adapter info:', infoErr );
+				log.warn( 'Could not get adapter info:', infoErr );
 			}
 
-			console.log( 'WebGPU Adapter:', info );
+			log.info( 'WebGPU Adapter:', info );
 
 			// Store adapter info for later use
 			this.gpuAdapterInfo = {
@@ -441,7 +413,7 @@ class ModelLoader {
 		}
 
 		if ( this.isReady && this.engine ) {
-			console.log( 'Model already loaded' );
+			log.info( 'Model already loaded' );
 			return true;
 		}
 
@@ -480,10 +452,7 @@ class ModelLoader {
 			this.isLoading = false;
 
 			const mode = useSW ? 'Service Worker' : 'Page';
-			console.log(
-				`[ModelLoader] WebLLM model loaded (${ mode } mode):`,
-				this.modelId
-			);
+			log.info( `WebLLM model loaded (${ mode } mode):`, this.modelId );
 			return true;
 		} catch ( err ) {
 			this.isLoading = false;
@@ -493,7 +462,7 @@ class ModelLoader {
 				'error',
 				`Failed to load model: ${ err.message }`
 			);
-			console.error( 'Failed to load WebLLM model:', err );
+			log.error( 'Failed to load WebLLM model:', err );
 			throw err;
 		}
 	}
@@ -513,18 +482,14 @@ class ModelLoader {
 		// Register SW if not already registered
 		const registration = await this.registerServiceWorker();
 		if ( ! registration ) {
-			console.warn(
-				'[ModelLoader] SW registration failed, falling back to page mode'
-			);
+			log.warn( 'SW registration failed, falling back to page mode' );
 			this.useServiceWorker = false;
 			return this.loadWithoutServiceWorker();
 		}
 
 		// Wait for SW to be active before trying to communicate with it
 		// The SW uses skipWaiting() but we still need to wait for it to become active
-		console.log(
-			'[ModelLoader] Waiting for Service Worker to become active...'
-		);
+		log.info( 'Waiting for Service Worker to become active...' );
 		this.reportStatus(
 			'loading',
 			'Waiting for Service Worker to activate...'
@@ -543,23 +508,21 @@ class ModelLoader {
 		] );
 
 		if ( ! activeWorker ) {
-			console.warn(
-				'[ModelLoader] SW failed to activate, falling back to page mode'
-			);
+			log.warn( 'SW failed to activate, falling back to page mode' );
 			this.useServiceWorker = false;
 			return this.loadWithoutServiceWorker();
 		}
 
-		console.log(
-			'[ModelLoader] Service Worker is active, proceeding with engine creation...'
+		log.info(
+			'Service Worker is active, proceeding with engine creation...'
 		);
 
 		// CRITICAL: Wait for SW to be controlling this page
 		// Hard refresh (Shift+Cmd+R) kills navigator.serviceWorker.controller
 		// WebLLM needs this to communicate with the SW
 		if ( ! navigator.serviceWorker.controller ) {
-			console.log(
-				'[ModelLoader] SW not controlling page yet, waiting for controllerchange...'
+			log.info(
+				'SW not controlling page yet, waiting for controllerchange...'
 			);
 			this.reportStatus(
 				'loading',
@@ -574,8 +537,8 @@ class ModelLoader {
 					navigator.serviceWorker.addEventListener(
 						'controllerchange',
 						() => {
-							console.log(
-								'[ModelLoader] Controller changed, SW now controlling page'
+							log.info(
+								'Controller changed, SW now controlling page'
 							);
 							resolve();
 						},
@@ -596,19 +559,14 @@ class ModelLoader {
 					),
 				] );
 			} catch ( err ) {
-				console.warn(
-					'[ModelLoader] Timeout waiting for SW controller:',
-					err
-				);
-				console.warn( '[ModelLoader] Falling back to page mode' );
+				log.warn( 'Timeout waiting for SW controller:', err );
+				log.warn( 'Falling back to page mode' );
 				this.useServiceWorker = false;
 				return this.loadWithoutServiceWorker();
 			}
 		}
 
-		console.log(
-			'[ModelLoader] SW is controlling page, ready for engine creation'
-		);
+		log.info( 'SW is controlling page, ready for engine creation' );
 
 		this.reportStatus(
 			'loading',
@@ -618,36 +576,25 @@ class ModelLoader {
 
 		// Create progress callback for WebLLM
 		const initProgressCallback = ( report ) => {
-			console.log(
-				'[ModelLoader] Init progress:',
-				report.progress,
-				report.text
-			);
+			log.info( 'Init progress:', report.progress, report.text );
 			const progress = Math.round( 10 + report.progress * 85 ); // Scale to 10-95%
 			this.reportProgress( progress, report.text );
 		};
 
-		console.log(
-			'[ModelLoader] About to call CreateServiceWorkerMLCEngine...'
-		);
-		console.log( '[ModelLoader] Model ID:', this.modelId );
-		console.log(
-			'[ModelLoader] Keep-alive interval:',
-			SW_CONFIG.keepAliveMs
-		);
-		console.log( '[ModelLoader] SW registration:', this.swRegistration );
-		console.log( '[ModelLoader] Active worker:', activeWorker );
+		log.info( 'About to call CreateServiceWorkerMLCEngine...' );
+		log.info( 'Model ID:', this.modelId );
+		log.info( 'Keep-alive interval:', SW_CONFIG.keepAliveMs );
+		log.info( 'SW registration:', this.swRegistration );
+		log.info( 'Active worker:', activeWorker );
 
 		// Create the Service Worker MLCEngine
 		// This sends messages to the SW which holds the actual engine
 		try {
-			console.log(
-				'[ModelLoader] Calling CreateServiceWorkerMLCEngine NOW...'
-			);
-			console.log( '[ModelLoader] Parameters:' );
-			console.log( '  - modelId:', this.modelId );
-			console.log( '  - registration:', this.swRegistration );
-			console.log( '  - keepAliveMs:', SW_CONFIG.keepAliveMs );
+			log.info( 'Calling CreateServiceWorkerMLCEngine NOW...' );
+			log.info( 'Parameters:' );
+			log.debug( '  - modelId:', this.modelId );
+			log.debug( '  - registration:', this.swRegistration );
+			log.debug( '  - keepAliveMs:', SW_CONFIG.keepAliveMs );
 
 			// WebLLM uses navigator.serviceWorker.controller internally
 			// Don't pass the registration - it can't be cloned for postMessage
@@ -659,23 +606,14 @@ class ModelLoader {
 				undefined, // Let WebLLM use navigator.serviceWorker.controller
 				SW_CONFIG.keepAliveMs
 			);
-			console.log(
-				'[ModelLoader] CreateServiceWorkerMLCEngine returned successfully'
-			);
+			log.info( 'CreateServiceWorkerMLCEngine returned successfully' );
 		} catch ( err ) {
-			console.error(
-				'[ModelLoader] CreateServiceWorkerMLCEngine failed:',
-				err
-			);
-			console.error(
-				'[ModelLoader] Error details:',
-				err.message,
-				err.stack
-			);
+			log.error( 'CreateServiceWorkerMLCEngine failed:', err );
+			log.error( 'Error details:', err.message, err.stack );
 			throw err;
 		}
 
-		console.log( '[ModelLoader] Service Worker MLCEngine created' );
+		log.info( 'Service Worker MLCEngine created' );
 	}
 
 	/**
@@ -701,7 +639,7 @@ class ModelLoader {
 			initProgressCallback,
 		} );
 
-		console.log( '[ModelLoader] Page-local MLCEngine created' );
+		log.info( 'Page-local MLCEngine created' );
 	}
 
 	/**
@@ -714,9 +652,7 @@ class ModelLoader {
 	 */
 	setUseServiceWorker( useSW ) {
 		if ( this.isReady || this.isLoading ) {
-			console.warn(
-				'[ModelLoader] Cannot change mode while model is loaded/loading'
-			);
+			log.warn( 'Cannot change mode while model is loaded/loading' );
 			return;
 		}
 		this.useServiceWorker = useSW;
@@ -763,9 +699,9 @@ class ModelLoader {
 		if ( this.engine ) {
 			try {
 				await this.engine.unload();
-				console.log( '[ModelLoader] Model unloaded' );
+				log.info( 'Model unloaded' );
 			} catch ( err ) {
-				console.warn( 'Error unloading model:', err );
+				log.warn( 'Error unloading model:', err );
 			}
 			this.engine = null;
 		}
@@ -805,10 +741,7 @@ class ModelLoader {
 				...usage,
 				timestamp: Date.now(),
 			};
-			console.log(
-				'[ModelLoader] Updated usage stats:',
-				this.lastUsageStats
-			);
+			log.info( 'Updated usage stats:', this.lastUsageStats );
 		}
 	}
 
@@ -912,7 +845,7 @@ class ModelLoader {
 
 			return null;
 		} catch ( err ) {
-			console.warn( '[ModelLoader] Error getting memory stats:', err );
+			log.warn( 'Error getting memory stats:', err );
 			return null;
 		}
 	}
@@ -955,7 +888,7 @@ class ModelLoader {
 	 */
 	resetContextUsage() {
 		this.lastUsageStats = null;
-		console.log( '[ModelLoader] Context usage reset' );
+		log.info( 'Context usage reset' );
 	}
 
 	/**

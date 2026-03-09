@@ -6,6 +6,7 @@
  * This API allows both WP-Agentic-Admin and third-party plugins
  * to register abilities that the AI assistant can use.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

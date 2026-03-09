@@ -4,6 +4,7 @@
  *
  * Handles the main Agentic Admin page in WP-Admin.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

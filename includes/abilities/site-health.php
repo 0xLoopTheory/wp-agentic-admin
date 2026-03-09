@@ -4,6 +4,7 @@
  *
  * Gets comprehensive site health information.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

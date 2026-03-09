@@ -7,6 +7,9 @@
  */
 
 import { useState } from '@wordpress/element';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'MessageItem' );
 
 /**
  * Message type constants
@@ -148,7 +151,7 @@ const MessageItem = ( { message } ) => {
 			setCopied( true );
 			setTimeout( () => setCopied( false ), 2000 );
 		} catch ( err ) {
-			console.error( 'Failed to copy:', err );
+			log.error( 'Failed to copy:', err );
 		}
 	};
 

@@ -4,6 +4,7 @@
  *
  * Handles the registration, rendering, and saving of plugin settings.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

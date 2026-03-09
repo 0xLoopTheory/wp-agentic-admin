@@ -6,6 +6,7 @@
  * browser permits registering the SW with scope '/wp-admin/' even though
  * the script lives under '/wp-content/plugins/...'.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since   0.4.1
  */

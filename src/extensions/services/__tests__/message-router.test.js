@@ -9,7 +9,7 @@
 
 import { route, isWorkflowQuery } from '../message-router';
 import workflowRegistry from '../workflow-registry';
-import toolRegistry from '../tool-registry';
+import toolRegistry from '../tool-registry'; // eslint-disable-line no-unused-vars -- Required for jest.mock() to resolve.
 
 // Mock workflow registry
 jest.mock( '../workflow-registry', () => ( {

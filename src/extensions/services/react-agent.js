@@ -60,6 +60,9 @@ class ReactAgent {
 			onToolStart: () => {},
 			onToolEnd: () => {},
 			onThinking: () => {},
+			onThinkingStart: () => {},
+			onThinkingChunk: () => {},
+			onThinkingEnd: () => {},
 			onConfirmationRequired: async () => true, // Default: auto-confirm
 		};
 	}

@@ -5,6 +5,7 @@
  * Lists all scheduled WordPress cron events.
  * Similar to WP-CLI: wp cron event list
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since 0.1.0
  */

@@ -4,6 +4,7 @@
  *
  * Lists all installed plugins with their status.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

@@ -4,6 +4,7 @@
  *
  * Activates a specific plugin by its slug.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

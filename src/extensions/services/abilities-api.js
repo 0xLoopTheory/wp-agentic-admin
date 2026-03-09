@@ -5,6 +5,10 @@
  *
  */
 
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'AbilitiesAPI' );
+
 /**
  * AbilitiesAPI class for making REST API calls to the Abilities API
  */
@@ -39,7 +43,7 @@ class AbilitiesAPI {
 			headers[ 'Content-Type' ] = 'application/json';
 		}
 
-		console.log( '[AbilitiesAPI] Request:', options.method || 'GET', url );
+		log.info( 'Request:', options.method || 'GET', url );
 
 		try {
 			const response = await fetch( url, {
@@ -50,17 +54,17 @@ class AbilitiesAPI {
 
 			if ( ! response.ok ) {
 				const errorData = await response.json().catch( () => ( {} ) );
-				console.error( '[AbilitiesAPI] Error response:', errorData );
+				log.error( 'Error response:', errorData );
 				throw new Error(
 					errorData.message || `HTTP error ${ response.status }`
 				);
 			}
 
 			const data = await response.json();
-			console.log( '[AbilitiesAPI] Response:', data );
+			log.info( 'Response:', data );
 			return data;
 		} catch ( error ) {
-			console.error( '[AbilitiesAPI] Request failed:', error );
+			log.error( 'Request failed:', error );
 			throw error;
 		}
 	}
@@ -85,8 +89,8 @@ class AbilitiesAPI {
 				const abilityId = ability.name || ability.id;
 				if ( abilityId ) {
 					this.abilitiesCache.set( abilityId, ability );
-					console.log(
-						'[AbilitiesAPI] Cached ability:',
+					log.info(
+						'Cached ability:',
 						abilityId,
 						'isReadOnly:',
 						ability?.meta?.annotations?.isReadOnly
@@ -210,27 +214,19 @@ class AbilitiesAPI {
 		let ability;
 		const abilityId = `${ namespace }/${ name }`;
 
-		console.log(
-			'[AbilitiesAPI] executeAbility:',
-			abilityId,
-			'input:',
-			input
-		);
-		console.log(
-			'[AbilitiesAPI] Cache has ability:',
-			this.abilitiesCache.has( abilityId )
-		);
+		log.info( 'executeAbility:', abilityId, 'input:', input );
+		log.info( 'Cache has ability:', this.abilitiesCache.has( abilityId ) );
 
 		if ( this.abilitiesCache.has( abilityId ) ) {
 			ability = this.abilitiesCache.get( abilityId );
-			console.log( '[AbilitiesAPI] Using cached ability:', ability );
+			log.info( 'Using cached ability:', ability );
 		} else {
 			try {
 				ability = await this.getAbility( namespace, name );
-				console.log( '[AbilitiesAPI] Fetched ability:', ability );
+				log.info( 'Fetched ability:', ability );
 			} catch ( err ) {
-				console.warn(
-					'[AbilitiesAPI] Could not fetch ability metadata, defaulting to POST:',
+				log.warn(
+					'Could not fetch ability metadata, defaulting to POST:',
 					err
 				);
 				ability = null;
@@ -244,7 +240,7 @@ class AbilitiesAPI {
 			typeof input === 'object' &&
 			Object.keys( input ).length > 0;
 
-		console.log( '[AbilitiesAPI] Method:', method, 'hasInput:', hasInput );
+		log.info( 'Method:', method, 'hasInput:', hasInput );
 
 		if ( method === 'GET' || method === 'DELETE' ) {
 			// Use GET/DELETE with input as nested query parameters
@@ -254,15 +250,9 @@ class AbilitiesAPI {
 
 			if ( hasInput ) {
 				endpoint += this.buildInputQueryString( input );
-				console.log(
-					`[AbilitiesAPI] ${ method } with input:`,
-					endpoint
-				);
+				log.info( `${ method } with input:`, endpoint );
 			} else {
-				console.log(
-					`[AbilitiesAPI] ${ method } without input:`,
-					endpoint
-				);
+				log.info( `${ method } without input:`, endpoint );
 			}
 
 			return this.request( endpoint, { method } );
@@ -271,7 +261,7 @@ class AbilitiesAPI {
 		// Always send input as an object - abilities with input_schema expect it
 		// even if the schema has no required properties
 		const body = { input: input || {} };
-		console.log( `[AbilitiesAPI] ${ method } body:`, body );
+		log.info( `${ method } body:`, body );
 
 		return this.request( baseEndpoint, {
 			method,
@@ -317,7 +307,7 @@ class AbilitiesAPI {
 		try {
 			await this.listAbilities();
 		} catch ( err ) {
-			console.warn( 'Failed to prefetch abilities:', err );
+			log.warn( 'Failed to prefetch abilities:', err );
 		}
 	}
 }

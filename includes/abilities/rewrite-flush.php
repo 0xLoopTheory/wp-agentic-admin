@@ -5,6 +5,7 @@
  * Flushes the WordPress rewrite rules (permalinks).
  * Similar to WP-CLI: wp rewrite flush
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since 0.1.0
  */

@@ -140,7 +140,6 @@ export function route( userMessage ) {
 	const lower = userMessage.toLowerCase().trim();
 	const hasKeyword = matchesToolKeywords( lower );
 	const hasAction = hasActionIntent( lower );
-	const isQuestion = isKnowledgeQuestion( lower );
 
 	// Step 2: Tool keyword + action intent → ReAct without thinking (fast path)
 	if ( hasKeyword && hasAction ) {
@@ -149,6 +148,7 @@ export function route( userMessage ) {
 	}
 
 	// Step 3: Tool keyword + knowledge question → skip ReAct entirely
+	const isQuestion = isKnowledgeQuestion( lower );
 	if ( hasKeyword && isQuestion ) {
 		log.info(
 			'Routing to conversational (keyword present but knowledge question)'

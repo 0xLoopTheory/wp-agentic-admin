@@ -11,6 +11,9 @@ import modelLoader, {
 	ModelLoader,
 	DEFAULT_MODEL,
 } from '../services/model-loader';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'ModelStatus' );
 
 /**
  * Get the saved model from localStorage
@@ -22,7 +25,7 @@ const getSavedModel = () => {
 		const saved = localStorage.getItem( 'wp_agentic_admin_model' );
 		return saved || DEFAULT_MODEL;
 	} catch ( err ) {
-		console.warn( 'Failed to load saved model from localStorage:', err );
+		log.warn( 'Failed to load saved model from localStorage:', err );
 		return DEFAULT_MODEL;
 	}
 };
@@ -36,7 +39,7 @@ const saveModel = ( modelId ) => {
 	try {
 		localStorage.setItem( 'wp_agentic_admin_model', modelId );
 	} catch ( err ) {
-		console.warn( 'Failed to save model to localStorage:', err );
+		log.warn( 'Failed to save model to localStorage:', err );
 	}
 };
 
@@ -101,7 +104,7 @@ const ModelStatus = ( {
 	onModelReady,
 	onModelError,
 	initPhase,
-	initMessage,
+	initMessage, // eslint-disable-line no-unused-vars -- Prop passed by parent for future use in status display.
 	initProgress,
 } ) => {
 	const [ status, setStatus ] = useState( 'not-loaded' ); // not-loaded, checking, loading, ready, error
@@ -168,18 +171,22 @@ const ModelStatus = ( {
 		} );
 
 		// Check if model is already loaded
+		let cancelled = false;
 		if ( modelLoader.isModelReady() ) {
 			setStatus( 'ready' );
 			setMessage( 'AI model ready' );
 			setProgress( 100 );
-			// Get loaded model info
 			const info = modelLoader.getLoadedModelInfo();
 			setLoadedModelInfo( info );
-			// Get memory stats
 			modelLoader.getMemoryStats().then( ( stats ) => {
-				setMemoryStats( stats );
+				if ( ! cancelled ) {
+					setMemoryStats( stats );
+				}
 			} );
 		}
+		return () => {
+			cancelled = true;
+		};
 	}, [ onModelReady, onModelError ] );
 
 	/**
@@ -235,7 +242,7 @@ const ModelStatus = ( {
 			saveModel( selectedModel );
 			await modelLoader.load( selectedModel );
 		} catch ( err ) {
-			console.error( 'Failed to load model:', err );
+			log.error( 'Failed to load model:', err );
 			// Error state is handled by the status callback
 		}
 	}, [ selectedModel ] );

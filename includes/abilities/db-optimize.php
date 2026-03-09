@@ -4,6 +4,7 @@
  *
  * Optimizes WordPress database tables.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

@@ -39,6 +39,9 @@ import {
 	MessageType,
 	modelLoader,
 } from '../services';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'ChatContainer' );
 
 /**
  * ChatContainer component
@@ -86,7 +89,7 @@ const ChatContainer = ( {
 		}
 		initializedRef.current = true;
 
-		console.log( '[ChatContainer] Initializing chat framework...' );
+		log.info( 'Initializing chat framework...' );
 
 		// Register WordPress tools
 		registerWPTools();
@@ -145,7 +148,7 @@ const ChatContainer = ( {
 				setMessages( convertMessagesToDisplay( msgs ) );
 			},
 			onError: ( error ) => {
-				console.error( '[ChatContainer] Orchestrator error:', error );
+				log.error( 'Orchestrator error:', error );
 			},
 			onStateChange: ( { isProcessing } ) => {
 				setIsLoading?.( isProcessing );
@@ -342,10 +345,7 @@ const ChatContainer = ( {
 			try {
 				await chatOrchestrator.processMessage( text );
 			} catch ( error ) {
-				console.error(
-					'[ChatContainer] Error processing message:',
-					error
-				);
+				log.error( 'Error processing message:', error );
 			}
 		},
 		[ modelReady ]
@@ -458,12 +458,9 @@ const ChatContainer = ( {
 		try {
 			await navigator.clipboard.writeText( conversationText );
 			setShowCopiedSnackbar( true );
-			console.log( '[ChatContainer] Conversation copied to clipboard' );
+			log.info( 'Conversation copied to clipboard' );
 		} catch ( error ) {
-			console.error(
-				'[ChatContainer] Failed to copy conversation:',
-				error
-			);
+			log.error( 'Failed to copy conversation:', error );
 		}
 	}, [ messages ] );
 

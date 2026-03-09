@@ -7,9 +7,12 @@
 import { createRoot } from '@wordpress/element';
 import App from './App';
 import './styles/main.scss';
+import { createLogger } from './utils/logger';
+
+const log = createLogger( 'WPAgenticAdmin' );
 
 document.addEventListener( 'DOMContentLoaded', () => {
-	console.log( '[WP Agentic Admin] Version 0.1.1 initializing...' );
+	log.info( 'Version 0.1.1 initializing...' );
 	const container = document.getElementById( 'wp-agentic-admin-root' );
 
 	if ( ! container ) {
@@ -18,7 +21,7 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	// Check if settings are available
 	if ( typeof window.wpAgenticAdmin === 'undefined' ) {
-		console.error( 'WP Agentic Admin: Settings not found' );
+		log.error( 'Settings not found' );
 		return;
 	}
 

@@ -6,6 +6,7 @@
  * Third-party plugins can register their own abilities by hooking into
  * the 'wp_agentic_admin_register_abilities' action.
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  */
 

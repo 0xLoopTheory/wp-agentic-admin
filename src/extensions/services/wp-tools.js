@@ -23,6 +23,9 @@
 import { exposeGlobalAPI } from './agentic-abilities-api';
 import { registerAllAbilities } from '../abilities';
 import { registerAllWorkflows } from '../workflows';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'WPTools' );
 
 /**
  * Initialize WordPress tools.
@@ -35,7 +38,7 @@ import { registerAllWorkflows } from '../workflows';
  * Called during app initialization.
  */
 const registerWPTools = () => {
-	console.log( '[WPTools] Initializing WordPress tools...' );
+	log.info( 'Initializing WordPress tools...' );
 
 	// Expose the global registration API for third-party plugins
 	exposeGlobalAPI();
@@ -46,7 +49,7 @@ const registerWPTools = () => {
 	// Register all core workflows (v1.1)
 	registerAllWorkflows();
 
-	console.log( '[WPTools] WordPress tools initialized' );
+	log.info( 'WordPress tools initialized' );
 };
 
 /**

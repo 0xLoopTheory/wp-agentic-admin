@@ -10,6 +10,9 @@ import AbilityBrowser from './components/AbilityBrowser';
 import ModelStatus from './components/ModelStatus';
 import WebGPUFallback from './components/WebGPUFallback';
 import modelLoader from './services/model-loader';
+import { createLogger } from './utils/logger';
+
+const log = createLogger( 'App' );
 
 const App = () => {
 	const [ modelReady, setModelReady ] = useState( false );
@@ -61,7 +64,7 @@ const App = () => {
 				const isCached = await modelLoader.isModelCached();
 
 				if ( isCached ) {
-					console.log( '[App] Model is cached, auto-loading...' );
+					log.info( 'Model is cached, auto-loading...' );
 					setInitPhase( 'loading' );
 					setInitMessage( 'Loading from cache...' );
 					setInitProgress( 35 );
@@ -69,13 +72,13 @@ const App = () => {
 						await modelLoader.load();
 						setModelReady( true );
 					} catch ( loadErr ) {
-						console.error( '[App] Auto-load failed:', loadErr );
+						log.error( 'Auto-load failed:', loadErr );
 						// Don't show error - user can manually load
 					}
 				}
 				setInitPhase( null );
 			} catch ( err ) {
-				console.error( 'Initialization failed:', err );
+				log.error( 'Initialization failed:', err );
 				setInitPhase( null );
 			}
 		};

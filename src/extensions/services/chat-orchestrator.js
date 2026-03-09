@@ -758,13 +758,10 @@ Explain what went wrong and suggest what the user might try next.`;
 				// No need to call onToolEnd - workflow UI handles this
 			},
 			onRollbackStart: () => {
-				console.log( '[ChatOrchestrator] Rollback started' );
+				log.info( 'Rollback started' );
 			},
 			onRollbackComplete: ( results ) => {
-				console.log(
-					'[ChatOrchestrator] Rollback completed:',
-					results
-				);
+				log.info( 'Rollback completed:', results );
 			},
 			onWorkflowComplete: ( result ) => {
 				this.callbacks.onWorkflowComplete( result );
@@ -840,10 +837,7 @@ Explain what went wrong and suggest what the user might try next.`;
 	async requestWorkflowConfirmation( item, details ) {
 		// Use the same confirmation handler as single tools
 		// but with enhanced details for workflows
-		console.log(
-			'[ChatOrchestrator] Workflow confirmation requested:',
-			details
-		);
+		log.info( 'Workflow confirmation requested:', details );
 		return this.requestConfirmation( {
 			...item,
 			confirmationMessage:
@@ -862,9 +856,7 @@ Explain what went wrong and suggest what the user might try next.`;
 	async requestConfirmation() {
 		// This should be implemented by the UI layer
 		// Default implementation returns true (auto-confirm)
-		console.warn(
-			'[ChatOrchestrator] No confirmation handler set, auto-confirming'
-		);
+		log.warn( 'No confirmation handler set, auto-confirming' );
 		return true;
 	}
 

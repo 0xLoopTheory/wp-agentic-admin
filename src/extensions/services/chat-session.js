@@ -6,6 +6,10 @@
  *
  */
 
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'ChatSession' );
+
 /**
  * Message types enum
  */
@@ -101,7 +105,7 @@ class ChatSession {
 	 * Add an assistant message
 	 *
 	 * @param {string} content - Message content
-	 * @param          meta
+	 * @param {Object} meta    - Optional metadata for the message
 	 * @return {Object} The added message
 	 */
 	addAssistantMessage( content, meta = {} ) {
@@ -324,7 +328,7 @@ class ChatSession {
 			localStorage.setItem( this.storageKey, jsonStr );
 			return true;
 		} catch ( error ) {
-			console.error( '[ChatSession] Failed to save session:', error );
+			log.error( 'Failed to save session:', error );
 			return false;
 		}
 	}
@@ -352,7 +356,7 @@ class ChatSession {
 			this.onChange( this.messages, null );
 			return true;
 		} catch ( error ) {
-			console.error( '[ChatSession] Failed to load session:', error );
+			log.error( 'Failed to load session:', error );
 			return false;
 		}
 	}
@@ -365,10 +369,10 @@ class ChatSession {
 	deleteSaved() {
 		try {
 			localStorage.removeItem( this.storageKey );
-			console.log( '[ChatSession] Deleted saved session' );
+			log.info( 'Deleted saved session' );
 			return true;
 		} catch ( error ) {
-			console.error( '[ChatSession] Failed to delete session:', error );
+			log.error( 'Failed to delete session:', error );
 			return false;
 		}
 	}

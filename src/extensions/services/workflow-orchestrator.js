@@ -26,6 +26,9 @@
 
 import toolRegistry from './tool-registry';
 import workflowRegistry from './workflow-registry';
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'WorkflowOrchestrator' );
 
 /**
  * @typedef {Object} WorkflowState
@@ -118,8 +121,8 @@ class WorkflowOrchestrator {
 			error: null,
 		};
 
-		console.log(
-			`[WorkflowOrchestrator] Starting workflow: ${ workflow.id } (${ workflow.steps.length } steps)`
+		log.info(
+			`Starting workflow: ${ workflow.id } (${ workflow.steps.length } steps)`
 		);
 		this.callbacks.onWorkflowStart( workflow, this.currentState );
 
@@ -134,9 +137,7 @@ class WorkflowOrchestrator {
 				);
 
 				if ( ! confirmed ) {
-					console.log(
-						'[WorkflowOrchestrator] Workflow cancelled by user'
-					);
+					log.info( 'Workflow cancelled by user' );
 					return this.createResult(
 						false,
 						'Workflow cancelled by user.'
@@ -176,8 +177,8 @@ class WorkflowOrchestrator {
 				if ( ! stepResult.success ) {
 					if ( step.optional ) {
 						// Optional step failed, continue
-						console.log(
-							`[WorkflowOrchestrator] Optional step ${ i } failed, continuing...`
+						log.info(
+							`Optional step ${ i } failed, continuing...`
 						);
 						this.currentState.completedSteps.push( stepResult );
 						previousResults.push( stepResult );
@@ -207,14 +208,10 @@ class WorkflowOrchestrator {
 			const result = this.createResult( true, summary );
 			this.callbacks.onWorkflowComplete( result );
 
-			console.log(
-				`[WorkflowOrchestrator] Workflow completed successfully: ${ workflow.id }`
-			);
+			log.info( `Workflow completed successfully: ${ workflow.id }` );
 			return result;
 		} catch ( error ) {
-			console.error(
-				`[WorkflowOrchestrator] Workflow failed: ${ error.message }`
-			);
+			log.error( `Workflow failed: ${ error.message }` );
 			this.currentState.status = 'failed';
 			this.currentState.error = error;
 
@@ -246,19 +243,13 @@ class WorkflowOrchestrator {
 	async executeStep( step, stepIndex, initialParams, previousResults ) {
 		const startTime = Date.now();
 
-		console.log(
-			`[WorkflowOrchestrator] Executing step ${ stepIndex + 1 }: ${
-				step.label
-			}`
-		);
+		log.info( `Executing step ${ stepIndex + 1 }: ${ step.label }` );
 		this.callbacks.onStepStart( step, stepIndex );
 
 		// Check includeIf condition before executing (semi-flexible workflows)
 		if ( step.includeIf ) {
-			console.log(
-				`[WorkflowOrchestrator] Evaluating includeIf condition for step ${
-					stepIndex + 1
-				}`
+			log.info(
+				`Evaluating includeIf condition for step ${ stepIndex + 1 }`
 			);
 
 			try {
@@ -269,10 +260,10 @@ class WorkflowOrchestrator {
 				);
 
 				if ( ! shouldExecute ) {
-					console.log(
-						`[WorkflowOrchestrator] Skipping step ${
-							stepIndex + 1
-						}: ${ step.label } (includeIf returned false)`
+					log.info(
+						`Skipping step ${ stepIndex + 1 }: ${
+							step.label
+						} (includeIf returned false)`
 					);
 					return this.createSkippedStepResult(
 						step,
@@ -281,21 +272,19 @@ class WorkflowOrchestrator {
 					);
 				}
 
-				console.log(
-					`[WorkflowOrchestrator] Step ${
+				log.info(
+					`Step ${
 						stepIndex + 1
 					} will execute (includeIf returned true)`
 				);
 			} catch ( error ) {
-				console.error(
-					`[WorkflowOrchestrator] Error evaluating includeIf for step ${
-						stepIndex + 1
-					}:`,
+				log.error(
+					`Error evaluating includeIf for step ${ stepIndex + 1 }:`,
 					error
 				);
 				// Default to true (execute step) on error (fail-safe behavior)
-				console.log(
-					`[WorkflowOrchestrator] Defaulting to execute step ${
+				log.info(
+					`Defaulting to execute step ${
 						stepIndex + 1
 					} due to includeIf error`
 				);
@@ -358,8 +347,8 @@ class WorkflowOrchestrator {
 			}
 
 			this.callbacks.onStepComplete( stepResult );
-			console.log(
-				`[WorkflowOrchestrator] Step ${ stepIndex + 1 } completed in ${
+			log.info(
+				`Step ${ stepIndex + 1 } completed in ${
 					stepResult.duration
 				}ms`
 			);
@@ -376,11 +365,7 @@ class WorkflowOrchestrator {
 			};
 
 			this.callbacks.onStepFailed( stepResult, error );
-			console.error(
-				`[WorkflowOrchestrator] Step ${ stepIndex + 1 } failed: ${
-					error.message
-				}`
-			);
+			log.error( `Step ${ stepIndex + 1 } failed: ${ error.message }` );
 
 			return stepResult;
 		}
@@ -403,22 +388,15 @@ class WorkflowOrchestrator {
 	async evaluateIncludeIf( includeIf, previousResults, initialParams ) {
 		// Case A: Function-based (fast, deterministic)
 		if ( typeof includeIf === 'function' ) {
-			console.log(
-				'[WorkflowOrchestrator] Evaluating function-based includeIf'
-			);
+			log.info( 'Evaluating function-based includeIf' );
 			const result = includeIf( previousResults, initialParams );
-			console.log(
-				'[WorkflowOrchestrator] Function-based includeIf result:',
-				result
-			);
+			log.info( 'Function-based includeIf result:', result );
 			return Boolean( result );
 		}
 
 		// Case B: LLM-based (flexible, slower)
 		if ( typeof includeIf === 'object' && includeIf.prompt ) {
-			console.log(
-				'[WorkflowOrchestrator] Evaluating LLM-based includeIf'
-			);
+			log.info( 'Evaluating LLM-based includeIf' );
 			return await this.evaluateLLMCondition(
 				includeIf.prompt,
 				previousResults,
@@ -427,8 +405,8 @@ class WorkflowOrchestrator {
 		}
 
 		// Invalid config - log warning, default to true (execute step)
-		console.warn(
-			'[WorkflowOrchestrator] Invalid includeIf config (not a function or {prompt}), defaulting to execute step'
+		log.warn(
+			'Invalid includeIf config (not a function or {prompt}), defaulting to execute step'
 		);
 		return true;
 	}
@@ -456,8 +434,8 @@ class WorkflowOrchestrator {
 			const engine = modelLoader.getEngine();
 
 			if ( ! engine ) {
-				console.warn(
-					'[WorkflowOrchestrator] LLM not available for includeIf, defaulting to execute'
+				log.warn(
+					'LLM not available for includeIf, defaulting to execute'
 				);
 				return true; // Fail-safe: execute if LLM unavailable
 			}
@@ -474,10 +452,7 @@ class WorkflowOrchestrator {
 				context
 			);
 
-			console.log(
-				'[WorkflowOrchestrator] LLM condition prompt:',
-				interpolatedPrompt
-			);
+			log.info( 'LLM condition prompt:', interpolatedPrompt );
 
 			// Step 3: Call LLM with JSON schema enforcement
 			const systemPrompt = `You are evaluating whether a workflow step should execute.
@@ -502,9 +477,7 @@ Respond with JSON only: { "execute": true/false, "reason": "brief explanation" }
 
 			const content = response.choices[ 0 ]?.message?.content;
 			if ( ! content ) {
-				console.warn(
-					'[WorkflowOrchestrator] Empty LLM response, defaulting to execute'
-				);
+				log.warn( 'Empty LLM response, defaulting to execute' );
 				return true;
 			}
 
@@ -513,38 +486,30 @@ Respond with JSON only: { "execute": true/false, "reason": "brief explanation" }
 			try {
 				decision = JSON.parse( content );
 			} catch ( parseError ) {
-				console.error(
-					'[WorkflowOrchestrator] Failed to parse LLM decision JSON:',
-					content
-				);
+				log.error( 'Failed to parse LLM decision JSON:', content );
 				return true; // Fail-safe: execute on parse error
 			}
 
 			const { execute, reason } = decision;
 
 			if ( typeof execute !== 'boolean' ) {
-				console.warn(
-					'[WorkflowOrchestrator] Invalid LLM decision format (missing "execute" boolean), defaulting to execute'
+				log.warn(
+					'Invalid LLM decision format (missing "execute" boolean), defaulting to execute'
 				);
 				return true;
 			}
 
 			// Step 5: Log the decision
-			console.log(
-				`[WorkflowOrchestrator] LLM decision: execute=${ execute }, reason="${ reason }"`
+			log.info(
+				`LLM decision: execute=${ execute }, reason="${ reason }"`
 			);
 
 			return execute;
 		} catch ( error ) {
 			if ( error.message === 'Timeout' ) {
-				console.warn(
-					'[WorkflowOrchestrator] LLM condition timeout (3s), defaulting to execute'
-				);
+				log.warn( 'LLM condition timeout (3s), defaulting to execute' );
 			} else {
-				console.error(
-					'[WorkflowOrchestrator] Error evaluating LLM condition:',
-					error
-				);
+				log.error( 'Error evaluating LLM condition:', error );
 			}
 			return true; // Fail-safe: execute on error
 		}
@@ -635,8 +600,8 @@ Respond with JSON only: { "execute": true/false, "reason": "brief explanation" }
 
 				interpolated = interpolated.replace( placeholder, stringValue );
 			} else {
-				console.warn(
-					`[WorkflowOrchestrator] Variable "${ varName }" not found in context, leaving placeholder`
+				log.warn(
+					`Variable "${ varName }" not found in context, leaving placeholder`
 				);
 			}
 		} );
@@ -672,14 +637,12 @@ Respond with JSON only: { "execute": true/false, "reason": "brief explanation" }
 	 */
 	async performRollback() {
 		if ( this.currentState.rollbackStack.length === 0 ) {
-			console.log(
-				'[WorkflowOrchestrator] No rollback operations needed'
-			);
+			log.info( 'No rollback operations needed' );
 			return false;
 		}
 
-		console.log(
-			`[WorkflowOrchestrator] Rolling back ${ this.currentState.rollbackStack.length } operations...`
+		log.info(
+			`Rolling back ${ this.currentState.rollbackStack.length } operations...`
 		);
 		this.callbacks.onRollbackStart( this.currentState.rollbackStack );
 
@@ -690,17 +653,15 @@ Respond with JSON only: { "execute": true/false, "reason": "brief explanation" }
 			const rollbackItem = this.currentState.rollbackStack.pop();
 
 			try {
-				console.log(
-					`[WorkflowOrchestrator] Rolling back: ${ rollbackItem.label }`
-				);
+				log.info( `Rolling back: ${ rollbackItem.label }` );
 				await rollbackItem.rollback();
 				rollbackResults.push( {
 					step: rollbackItem.label,
 					success: true,
 				} );
 			} catch ( error ) {
-				console.error(
-					`[WorkflowOrchestrator] Rollback failed for ${ rollbackItem.label }: ${ error.message }`
+				log.error(
+					`Rollback failed for ${ rollbackItem.label }: ${ error.message }`
 				);
 				rollbackResults.push( {
 					step: rollbackItem.label,
@@ -716,8 +677,8 @@ Respond with JSON only: { "execute": true/false, "reason": "brief explanation" }
 		const successCount = rollbackResults.filter(
 			( r ) => r.success
 		).length;
-		console.log(
-			`[WorkflowOrchestrator] Rollback complete: ${ successCount }/${ rollbackResults.length } succeeded`
+		log.info(
+			`Rollback complete: ${ successCount }/${ rollbackResults.length } succeeded`
 		);
 
 		return true;

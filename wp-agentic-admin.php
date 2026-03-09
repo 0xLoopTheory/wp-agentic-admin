@@ -2,6 +2,7 @@
 /**
  * WP Agentic Admin - Main Plugin File
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since   0.1.0
  */
@@ -11,7 +12,7 @@
  * Plugin Name: WP Agentic Admin
  * Plugin URI: https://pluginslab.com/wp-agentic-admin
  * Description: A privacy-first AI Site Reliability Engineer running entirely in the browser. Uses WebAssembly and WebGPU to execute Small Language Models locally, transforming WP-Admin into a natural language command center via the WordPress Abilities API.
- * Version: 0.5.0
+ * Version: 0.6.0
  * Author: Pluginslab
  * Author URI: https://pluginslab.com
  * License: GPL-2.0-or-later
@@ -138,7 +139,7 @@ if ( ! class_exists( 'WPAgenticAdmin' ) ) {
 		 * @return void
 		 */
 		private function define_constants(): void {
-			define( 'WP_AGENTIC_ADMIN_VERSION', '0.4.2' );
+			define( 'WP_AGENTIC_ADMIN_VERSION', '0.6.0' );
 			define( 'WP_AGENTIC_ADMIN_FILE', __FILE__ );
 			define( 'WP_AGENTIC_ADMIN_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 			define( 'WP_AGENTIC_ADMIN_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
@@ -162,7 +163,7 @@ if ( ! class_exists( 'WPAgenticAdmin' ) ) {
 		 * Activation hook
 		 */
 		public static function activate(): void {
-			update_option( 'wp_agentic_admin_version', '0.4.0' );
+			update_option( 'wp_agentic_admin_version', '0.6.0' );
 			flush_rewrite_rules();
 		}
 

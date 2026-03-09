@@ -28,7 +28,7 @@ jest.mock( '../../utils/logger', () => ( {
  * Simulates WebLLM streaming by yielding one chunk with the full content.
  *
  * @param {string} content - The LLM response content
- * @return {AsyncIterable} Mock stream
+ * @return {Object} Mock stream implementing async iterator protocol
  */
 function mockStream( content ) {
 	return {

@@ -6,6 +6,10 @@
  *
  */
 
+import { createLogger } from '../utils/logger';
+
+const log = createLogger( 'WorkflowRegistry' );
+
 /**
  * @typedef {Object} WorkflowStep
  * @property {string}   abilityId                    - The ability to execute for this step
@@ -57,9 +61,7 @@ class WorkflowRegistry {
 		this.validateWorkflow( workflow );
 
 		if ( this.workflows.has( workflow.id ) ) {
-			console.warn(
-				`[WorkflowRegistry] Overwriting existing workflow: ${ workflow.id }`
-			);
+			log.warn( `Overwriting existing workflow: ${ workflow.id }` );
 		}
 
 		// Set defaults
@@ -76,8 +78,8 @@ class WorkflowRegistry {
 		};
 
 		this.workflows.set( workflow.id, workflowWithDefaults );
-		console.log(
-			`[WorkflowRegistry] Registered workflow: ${ workflow.id } (${ workflow.steps.length } steps)`
+		log.info(
+			`Registered workflow: ${ workflow.id } (${ workflow.steps.length } steps)`
 		);
 	}
 
@@ -193,8 +195,8 @@ class WorkflowRegistry {
 
 		// Require minimum score threshold
 		if ( bestScore >= 5 ) {
-			console.log(
-				`[WorkflowRegistry] Detected workflow: ${ bestMatch.id } (score: ${ bestScore })`
+			log.info(
+				`Detected workflow: ${ bestMatch.id } (score: ${ bestScore })`
 			);
 			return bestMatch;
 		}

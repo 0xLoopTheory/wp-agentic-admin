@@ -5,6 +5,7 @@
  * Lists and counts WordPress rewrite rules.
  * Similar to WP-CLI: wp rewrite list
  *
+ * @license GPL-2.0-or-later
  * @package WPAgenticAdmin
  * @since 0.1.0
  */
