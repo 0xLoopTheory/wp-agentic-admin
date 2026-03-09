@@ -343,19 +343,19 @@ The `WorkflowOrchestrator` supports 10 callback functions for UI updates and wor
 
 ## How Workflow Execution Works
 
-When a user sends a message, the `MessageRouter` determines how to handle it using 2-tier routing:
+When a user sends a message, the `MessageRouter` determines how to handle it using 3-tier routing. Workflows have the highest priority:
 
 ```
 User message → Keyword detection → Match workflow?
                     │                         │
               NO ───┤                   YES ──┤
                     ▼                         ▼
-           ┌────────────┐          ┌──────────────────┐
-           │ ReAct loop │          │ Show confirmation │
-           │ (handles   │          │ (if required)     │
-           │ questions  │          └──────────────────┘
-           │ & actions) │                    │
-           └────────────┘                    ▼
+           ┌────────────────┐      ┌──────────────────┐
+           │ Tool keyword + │      │ Show confirmation │
+           │ action verb?   │      │ (if required)     │
+           │   YES → ReAct  │      └──────────────────┘
+           │   NO  → Direct │                │
+           │        LLM     │                ▼
                                    ┌──────────────────┐
                                    │ Execute Step 1   │
                                    └──────────────────┘

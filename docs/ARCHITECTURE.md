@@ -131,19 +131,29 @@ Two models are available, both running locally via WebGPU:
 
 ### Message Routing
 
-The router uses **2-tier routing**: workflow detection first, then everything else through ReAct.
+The router uses **3-tier routing** based on workflow detection, tool keyword matching, and action intent:
 
 ```
 User Message
   ↓
-Does it match a workflow keyword? (e.g., "full site cleanup")
-  ↓ Yes → Execute Workflow (pre-defined steps)
-  ↓ No
-  ↓
-ReAct Loop (handles everything: questions, tool calls, diagnostics)
+1. Does it match a workflow keyword? (e.g., "full site cleanup")
+   ↓ Yes → Execute Workflow (pre-defined steps)
+   ↓ No
+2. Does it contain a tool keyword + action verb? (e.g., "list plugins")
+   ↓ Yes → ReAct Loop with thinking DISABLED (fast path, ~2-3s)
+   ↓ No
+3. Does it contain a tool keyword but no action? (e.g., "my site is slow")
+   ↓ Yes → ReAct Loop with thinking ENABLED (ambiguous, needs reasoning)
+   ↓ No
+4. Is it a knowledge question about a tool topic? (e.g., "what is a transient?")
+   ↓ Yes → Direct LLM (conversational, skip ReAct entirely)
+   ↓ No
+5. No tool relevance → Direct LLM (conversational)
 ```
 
-The ReAct loop handles both informational questions (answering directly without calling tools) and action requests (selecting and executing tools). There is no separate "conversational mode" — the LLM naturally decides whether to call tools or respond directly.
+This routing eliminates unnecessary LLM thinking for clear action commands (saving ~8-10s per interaction) while preserving full reasoning for ambiguous inputs. Knowledge questions bypass ReAct entirely and go straight to the LLM for a direct answer.
+
+**How it works:** The router checks the user message against all registered tool `keywords` arrays. If a match is found, it checks for action verbs (`list`, `show`, `check`, `flush`, `optimize`, etc.) to determine intent. Knowledge question patterns (`what is`, `explain`, `define`, etc.) are routed to conversational mode. New abilities automatically participate in routing through their `keywords` — no changes to the router needed.
 
 ### ReAct Loop Flow
 
@@ -188,9 +198,10 @@ return "I reached the maximum number of steps...";
 - Error recovery
 
 **2. Message Router (`message-router.js`)**
-- 2-tier routing: workflow detection, then ReAct
-- Workflow keyword matching
-- Default to ReAct loop (handles both questions and actions)
+- 3-tier routing: workflow → ReAct → conversational
+- Tool keyword matching against registered abilities
+- Action intent detection (verb + keyword → fast ReAct without thinking)
+- Knowledge question detection → direct LLM (skip ReAct)
 
 **3. Tool Registry (`tool-registry.js`)**
 - Registers all available abilities
@@ -320,9 +331,16 @@ The 1.7B model is recommended for most users — it loads faster, uses less VRAM
 
 ### Question Handling
 
-- Questions like "what is a transient?" go through the ReAct loop
-- The LLM naturally answers without calling tools when no action is needed
-- No separate pre-filter — the model decides whether to use tools or respond directly
+- Knowledge questions (e.g., "what is a transient?") are routed directly to the LLM, bypassing ReAct entirely
+- The message router detects question patterns (`what is`, `explain`, `define`, etc.) and routes to conversational mode
+- This avoids the expensive ReAct LLM call for questions that don't need tools
+
+### Thinking Mode Optimization
+
+- Qwen 3 generates internal `<think>...</think>` blocks before responding (~200-300 tokens of invisible reasoning)
+- For clear action commands (keyword + action verb), thinking is disabled via `/nothink` — saves ~8-10s per interaction
+- For ambiguous inputs (keyword only, no clear action), thinking remains enabled for accurate tool selection
+- Tool selection accuracy is 100% with thinking disabled on clear action commands (verified via ability test harness)
 
 ### Dual-Mode Support
 
@@ -336,9 +354,9 @@ The 1.7B model is recommended for most users — it loads faster, uses less VRAM
 
 WP-Agentic-Admin has two layers of testing:
 
-### Unit Tests (41 tests)
+### Unit Tests (43 tests)
 - `react-agent.test.js` - ReAct loop: JSON parsing, tool routing, iteration limits, repeated call detection, error handling
-- `message-router.test.js` - 2-tier message routing (workflow, ReAct)
+- `message-router.test.js` - 3-tier message routing (workflow, ReAct with/without thinking, conversational)
 - Mocked LLM responses for deterministic testing
 - Run with `npm test`
 
@@ -400,7 +418,7 @@ The following service modules live in `src/extensions/services/` and `src/extens
 - **ToolRegistry** (`tool-registry.js`) - JavaScript-side ability registration and keyword matching. Converts abilities to function-calling format for the LLM.
 - **WorkflowRegistry** (`workflow-registry.js`) - Workflow registration and keyword-based detection. Matches user messages to pre-defined workflows.
 - **WorkflowOrchestrator** (`workflow-orchestrator.js`) - Workflow execution engine with rollback support, `includeIf` conditional steps, `mapParams`, optional steps, confirmation prompts, and abort handling.
-- **MessageRouter** (`message-router.js`) - 2-tier message routing: workflow (keyword matching) and ReAct (default for everything else, including questions).
+- **MessageRouter** (`message-router.js`) - 3-tier message routing: workflow (keyword matching), ReAct (tool keyword + action intent, with optional thinking), and conversational (direct LLM for knowledge questions).
 - **ReactAgent** (`react-agent.js`) - Core ReAct loop with dual-mode support (function-calling and prompt-based JSON). Handles observation tracking, confirmation, repeated-call detection, and error recovery.
 - **Logger** (`utils/logger.js`) - Centralized logging with configurable levels. Used across all services via `createLogger('ModuleName')`.
 

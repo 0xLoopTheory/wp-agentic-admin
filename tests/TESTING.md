@@ -19,7 +19,7 @@ npm test
 ```
 src/extensions/services/__tests__/
   react-agent.test.js     # ReAct agent: JSON parsing, tool routing, error handling
-  message-router.test.js  # Message router: intent classification, tool matching
+  message-router.test.js  # Message router: 3-tier routing (workflow, ReAct, conversational)
 ```
 
 ### What they cover
