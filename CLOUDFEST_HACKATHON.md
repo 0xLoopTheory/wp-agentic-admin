@@ -1,4 +1,4 @@
-# WP Agentic Admin - Ideas & Future Features
+# WP Agentic Admin - CloudFest Hackathon
 
 This document captures feature ideas and improvements aligned with CloudFest Hackathon goals. No version numbers, no timelines - what gets built first gets released first.
 
@@ -11,42 +11,14 @@ These features align with CloudFest Hackathon goals and are targeted for impleme
 ### 1. Chat UI - Right Sidebar
 **Mission:** Move chat interface from settings page to a persistent right sidebar (like WP admin menu on left) that toggles with a button near "howdy USERNAME" at the top right.
 
-**Why:** Makes the AI assistant always accessible without navigating to a specific page. Natural integration into WordPress admin workflow.
+**Why:** Makes the AI assistant always accessible without navigating to a specific page. Critical for keeping the Service Worker active across all admin pages, not just the settings page. Natural integration into WordPress admin workflow.
 
 **Hackathon Goal:** Better UX integration for continuous workflow.
 
 ---
 
-### 2. WP-CLI Testing Tool
-**Mission:** Build a WP-CLI command that allows testing NLP calls as if using the chat interface, but from the command line for automated testing.
-
-**Why:** Enable automated testing of natural language → ability mapping without manual browser interaction. Critical for regression testing as abilities grow.
-
-**Example:** `wp agentic test "my site is slow"` → Returns which abilities would be triggered and their execution results.
-
-**Hackathon Goal:** Enhance small model reliability through systematic testing.
-
----
-
-### ~~3. SLM Strategy - Semantic Translation Layer~~ SUPERSEDED
-
-**Status:** The upgrade to 7B models (Qwen2.5-7B) in v0.2.0 achieved 96% E2E accuracy *without* the semantic translation layer. 7B models handle fuzzy intent mapping natively. This approach is no longer needed.
-
----
-
-### 4. Error Log Improvements
-**Mission:** Show most recent errors instead of first N entries from debug.log.
-
-**Current Problem:** Returns first entries, often showing old/irrelevant errors.
-
-**Enhancement:** Filter by level (ERROR → WARNING → any), add timestamp highlighting (< 1 hour, < 24 hours, older).
-
-**Hackathon Goal:** Better error handling and log analysis.
-
----
-
-### 5. Expanded Abilities Library
-**Mission:** Add 16 new SRE and WordPress-specific abilities based on common admin tasks.
+### 2. Expanded Abilities Library
+**Mission:** Add 17 new SRE and WordPress-specific abilities based on common admin tasks.
 
 **Categories:**
 
@@ -64,7 +36,8 @@ These features align with CloudFest Hackathon goals and are targeted for impleme
 - `comment-stats` - Get comment statistics
 - `comment-moderate` - Bulk approve/spam comments
 
-**Security & Diagnostics (4):**
+**Security & Diagnostics (5):**
+- `error-log-search` - Search/filter debug.log by severity level (errors vs warnings) and keyword
 - `security-scan` - Basic security checks (permissions, salts, versions)
 - `backup-check` - Verify backup plugin status and last backup
 - `update-check` - Check for WordPress/plugin/theme updates
@@ -80,50 +53,33 @@ These features align with CloudFest Hackathon goals and are targeted for impleme
 
 ---
 
-### ~~6. Semantic Workflows - NLP Translation for Workflows~~ SUPERSEDED
+### 3. External AI Provider Support
+**Mission:** Integrate external AI API support (Google AI API, WP AI Client proposal) alongside WebLLM for users who prefer cloud-based models or lack WebGPU-capable hardware.
 
-**Status:** Depended on the SLM Strategy (#3). With 7B models, the ReAct loop already handles adaptive tool composition (96% accuracy), and keyword-based workflow detection covers common patterns. The LLM-composed workflow approach (option B) is effectively what the ReAct loop does already.
+**Why:** Provides fallback option and accessibility for users without modern GPUs. Gives users choice between privacy-first local execution and cloud-based convenience. Serves as the settings/configuration layer for users who don't want to use a local LLM.
 
----
+**Technical:** Detect WebGPU availability → Offer external AI API as alternative → Same Abilities API, different execution backend.
 
-### 7. Google AI API Browser Extension Integration
-**Mission:** Integrate Google AI API support alongside WebLLM for users who prefer cloud-based models or lack WebGPU-capable hardware.
+**WP AI Client alignment:** Study WordPress core's AI Client proposal specifications and identify alignment points with our Abilities API. Position WP Agentic Admin as a reference implementation for WordPress AI integration. Ensure long-term compatibility with WordPress ecosystem.
 
-**Why:** Provides fallback option and accessibility for users without modern GPUs. Gives users choice between privacy-first local execution and cloud-based convenience.
-
-**Technical:** Detect WebGPU availability → Offer Google AI API as alternative → Same Abilities API, different execution backend.
-
-**Hackathon Goal:** Broader device compatibility and user choice.
+**Hackathon Goal:** Broader device compatibility, user choice, and WordPress ecosystem standards compliance.
 
 ---
 
-### 8. WP AI Client Core Proposal Adoption
-**Mission:** Align with WordPress core's AI Client proposal to ensure compatibility with future WordPress AI standards.
-
-**Why:** Position WP Agentic Admin as a reference implementation for WordPress AI integration. Ensure long-term compatibility with WordPress ecosystem.
-
-**Research Needed:** Study WP AI Client proposal specifications and identify alignment points with our Abilities API.
-
-**Hackathon Goal:** WordPress ecosystem integration and standards compliance.
-
----
-
-## 💡 Future Feature Ideas
+## 💡 Future Features
 
 Features to pursue after hackathon priorities are complete.
 
-### ~~Larger Model Support (7B+)~~ DONE
+### Model Discovery & Experimentation
+**Mission:** Allow searching, comparing, and swapping different models to find the best fit for various hardware and use cases.
 
-**Status:** Implemented in v0.2.0. Qwen2.5-7B is now the default model.
+**Features:**
+- Browse compatible WebLLM models (filtered by VRAM requirements, quantization, capabilities)
+- One-click model switching from the settings UI
+- Benchmark/test a model against the abilities suite before committing
+- Track performance metrics per model (accuracy, speed, memory usage)
 
-**Results:**
-- 96% E2E pass rate (26/27 tests) — up from 74% with 3B models
-- 100% JSON reliability (up from 63%)
-- Multi-step reasoning, conditional logic, and goal completion all at 100%
-- ~5GB VRAM, runs on consumer hardware with WebGPU
-- No semantic translation layer needed — 7B models handle intent mapping natively
-
-**Model:** Qwen 2.5 7B
+**Why:** Different users have different hardware. A model that works great on a gaming GPU may be too large for integrated graphics. Users should be able to find the best model for their setup.
 
 ---
 
@@ -152,26 +108,16 @@ Features to pursue after hackathon priorities are complete.
 
 ---
 
-### Community Building
-**Mission:** Foster third-party extensions and grow the ecosystem.
+## 🔬 Architecture & Research
 
-**Activities:**
-- Developer tutorials (video + written)
-- Example plugins demonstrating patterns
-- Ability marketplace (future)
-- Hosting provider partnerships
-- WordPress Plugin Directory submission
-
----
-
-### 9. Tool Selection at Scale
+### Tool Selection at Scale
 **Problem:** The ReAct agent presents all registered tools to the LLM — in prompt-based mode (small models without function calling) the entire tool list is dumped into the system prompt as text. With 14 abilities this works fine, but at 50-100+ abilities (especially with third-party extensions), the tool list alone could consume most of a small model's context window, leaving no room for the user message or reasoning.
 
 Even in function calling mode (structured `tools` array), 100+ tool definitions is a lot for a 7B model to reason over reliably.
 
 **Current state:** 14 abilities, ~2K tokens for the tool list. No issue yet, but this becomes a blocker before we hit 30+ abilities.
 
-**Proposed approaches (up for discussion):**
+**Proposed approaches:**
 
 **A. Two-stage selection** — A fast pre-filter (keyword matching, TF-IDF, or a tiny classifier) narrows 100 tools to ~5 candidates based on the user message, then only those 5 are passed to the LLM. Simple to implement, deterministic, but may miss tools with indirect relevance (e.g., "is debug mode enabled?" matching error-log-read).
 
@@ -181,9 +127,53 @@ Even in function calling mode (structured `tools` array), 100+ tool definitions 
 
 **Considerations:** Whatever approach we pick must work for third-party abilities too — the filtering/routing logic can't be hardcoded. The `description` field on abilities (added in v0.4.x) was designed with this in mind — it gives any future retrieval system a well-written sentence to match against.
 
+**Implementation plan (RLM-inspired lazy loading):**
+
+Based on [Recursive Language Models](https://arxiv.org/abs/2512.24601) (Zhang, Kraska, Khattab — Dec 2025) — the core insight being *don't load everything into context; search and load only what's needed*.
+
+**Phase 1 — Lightweight tool search (no LLM cost):**
+- Keep tools *outside* the LLM context entirely
+- When a user message arrives, use the existing `MessageRouter` keyword matching + ability `description` fields to score and rank candidate tools
+- Select the top 3-5 candidates based on keyword overlap and description relevance
+- This phase is deterministic and instant — no model inference needed
+
+**Phase 2 — Focused ReAct execution:**
+- Inject *only* the selected tool schemas (full input/output params, annotations, confirmation requirements) into the ReAct system prompt
+- The model now reasons with complete detail but over a minimal, relevant toolset
+- Context savings: instead of ~2K+ tokens for all tools, ~400-600 tokens for 3-5 tools
+
+**Phase 3 — Dynamic tool injection (the "recursive" part):**
+- If the ReAct loop's observation reveals a need for a tool not in the initial set (e.g., `site-health` output mentions cron issues), the agent can request additional tools
+- Add a meta-ability: `search-tools` — the model calls it with a description of what it needs, the system searches the full tool index, and injects the matching tool into the next iteration's context
+
+**Example flow:**
+```
+User: "my site is slow"
+  ↓
+Phase 1: MessageRouter keyword match
+  → candidates: [site-health, cache-flush, db-optimize]  (3 tools, ~500 tokens)
+  ↓
+Phase 2: ReAct with 3 tools
+  → LLM: "Let me check site-health first"
+  → Observation: "47 orphaned cron events detected"
+  ↓
+Phase 3: LLM calls search-tools("cron management")
+  → System injects cron-list into context
+  → LLM: "Let me list those cron events"
+  → Final answer with full diagnosis
+```
+
+**Implementation notes:**
+- The existing `keywords` array per ability is the index layer — already in place
+- The `description` field (added in v0.4.x) provides the searchable text
+- `search-tools` meta-ability should return tool name + description only; full schema injected on selection
+- Fallback: if keyword matching finds 0 candidates, fall back to loading all tools (current behavior)
+- Works for third-party abilities automatically — they already register with keywords and descriptions
+- Embedding-based retrieval (option B) can be layered on later if keyword matching proves insufficient
+
 ---
 
-### 10. transformers.js / ONNX Runtime as Alternative Engine
+### transformers.js / ONNX Runtime as Alternative Engine
 **Status:** Explored, partially working. Parked in favor of WebLLM for now.
 
 **What works:**
@@ -233,8 +223,6 @@ env.backends.onnx.wasm.proxy = false;
 
 ---
 
-## 🔬 Research & Experimental Ideas
-
 ### RAG (Retrieval-Augmented Generation)
 Embed WordPress documentation in vector database. Use RAG for technical questions: "How do I configure WP-Cron?" → Retrieve from docs + LLM summarizes.
 
@@ -259,9 +247,23 @@ Embed WordPress documentation in vector database. Use RAG for technical question
 
 ---
 
+## 🌐 Ecosystem & Community
+
+### Community Building
+**Mission:** Foster third-party extensions and grow the ecosystem.
+
+**Activities:**
+- Developer tutorials (video + written)
+- Example plugins demonstrating patterns
+- Ability marketplace (future)
+- Hosting provider partnerships
+- WordPress Plugin Directory submission
+
+---
+
 ## 📝 Notes
 
-**Hackathon Focus:** The top 8 priorities align with CloudFest Hackathon goals. Items #1 and #2 (Sidebar UI + CLI Testing) are targeted for completion before/during the hackathon.
+**Hackathon Focus:** Top priorities are the Sidebar UI (#1), Expanded Abilities (#2), and External AI Provider Support (#3).
 
 **Philosophy:** No version numbers. No rigid timelines. What gets done first gets released. Focus on making the core experience excellent before adding complexity.
 
