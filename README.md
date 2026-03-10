@@ -219,8 +219,9 @@ AI: [Executing: site-health]
 
 | Document | Description |
 |----------|-------------|
+| [**AI Fundamentals**](docs/ai-fundamentals/INDEX.md) | Understanding LLMs, WebGPU, quantization, and browser-based AI |
 | [**ARCHITECTURE.md**](docs/ARCHITECTURE.md) | Design principles and ReAct loop architecture |
-| [**CLOUDFEST_HACKATHON.md**](CLOUDFEST_HACKATHON.md) | Feature ideas and future possibilities |
+| [**CLOUDFEST_HACKATHON.md**](CLOUDFEST_HACKATHON.md) | Feature roadmap and hackathon priorities |
 | [Abilities Guide](docs/ABILITIES-GUIDE.md) | How to create new abilities |
 | [Workflows Guide](docs/WORKFLOWS-GUIDE.md) | How to create multi-step workflows |
 | [Third-Party Integration](docs/THIRD-PARTY-INTEGRATION.md) | Extending with custom plugins |
