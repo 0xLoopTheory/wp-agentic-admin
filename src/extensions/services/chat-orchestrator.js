@@ -20,7 +20,7 @@ import ReactAgent from './react-agent';
 import messageRouter from './message-router';
 import { createLogger } from '../utils/logger';
 
-const log = createLogger( 'Orchestrator' );
+const log = createLogger( 'ChatOrchestrator' );
 
 /**
  * Build system prompt for conversational queries

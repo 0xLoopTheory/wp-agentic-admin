@@ -1,116 +1,31 @@
-name: New Ability Request
-description: Propose a new ability for WP Agentic Admin
-labels: ["enhancement", "ability", "needs-triage"]
+name: Feature / Ability Request
+description: Propose a new ability, workflow, or feature
+labels: ["enhancement"]
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Thanks for proposing a new ability! Abilities are atomic WordPress operations that the AI can perform.
-
-  - type: input
-    id: ability-name
-    attributes:
-      label: Ability Name
-      description: Suggested name for this ability (e.g., "theme-switch", "user-create")
-      placeholder: "ability-name"
-    validations:
-      required: true
-
   - type: textarea
     id: description
     attributes:
-      label: Description
-      description: What should this ability do?
-      placeholder: A clear description of the functionality
-    validations:
-      required: true
-
-  - type: textarea
-    id: use-case
-    attributes:
-      label: Use Case
-      description: What problem does this solve?
-      placeholder: Describe the user need or admin task this addresses
+      label: What should it do?
+      placeholder: Describe the feature or ability
     validations:
       required: true
 
   - type: textarea
     id: example-queries
     attributes:
-      label: Example Queries
-      description: Natural language queries that should trigger this ability
+      label: Example user queries
       placeholder: |
         - "switch to dark theme"
-        - "activate the storefront theme"
-        - "change my theme"
-    validations:
-      required: true
+        - "list all users"
 
   - type: dropdown
-    id: category
+    id: type
     attributes:
-      label: Category
-      description: What category does this ability belong to?
+      label: Type
       options:
-        - "sre-tools (Site Reliability)"
-        - "content-management"
-        - "user-management"
-        - "security"
-        - "performance"
-        - "maintenance"
-        - "other"
+        - New ability (single operation)
+        - New workflow (multi-step)
+        - UI improvement
+        - Other
     validations:
       required: true
-
-  - type: dropdown
-    id: operation-type
-    attributes:
-      label: Operation Type
-      description: Is this a read-only or write operation?
-      options:
-        - "read (read-only, no changes)"
-        - "write (makes changes)"
-        - "write-destructive (irreversible changes)"
-    validations:
-      required: true
-
-  - type: checkboxes
-    id: requirements
-    attributes:
-      label: Requirements
-      description: What capabilities should this ability require?
-      options:
-        - label: "manage_options (admin only)"
-        - label: "edit_posts (editor or higher)"
-        - label: "edit_users (user management)"
-        - label: "manage_categories (category management)"
-        - label: "Other (specify in additional context)"
-
-  - type: textarea
-    id: input-params
-    attributes:
-      label: Input Parameters
-      description: What parameters should this ability accept?
-      placeholder: |
-        - theme_slug (string, required)
-        - preview (boolean, optional)
-
-  - type: textarea
-    id: output
-    attributes:
-      label: Expected Output
-      description: What should this ability return?
-      placeholder: Describe the success response and any relevant data
-
-  - type: textarea
-    id: additional
-    attributes:
-      label: Additional Context
-      description: Any other information, edge cases, or implementation notes
-
-  - type: checkboxes
-    id: contribution
-    attributes:
-      label: Implementation
-      options:
-        - label: "I'm willing to implement this ability myself"
