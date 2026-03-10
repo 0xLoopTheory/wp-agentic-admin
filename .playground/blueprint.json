@@ -1,0 +1,35 @@
+{
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "landingPage": "/wp-admin/admin.php?page=wp-agentic-admin",
+  "preferredVersions": {
+    "wp": "6.9",
+    "php": "8.3"
+  },
+  "features": {
+    "networking": true
+  },
+  "login": true,
+  "constants": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "SCRIPT_DEBUG": true
+  },
+  "steps": [
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "git:directory",
+        "url": "https://github.com/pluginslab/wp-agentic-admin",
+        "ref": "main",
+        "path": "/"
+      }
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "WP Agentic Admin — Hackathon",
+        "permalink_structure": "/%postname%/"
+      }
+    }
+  ]
+}
