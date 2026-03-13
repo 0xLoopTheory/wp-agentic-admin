@@ -280,10 +280,15 @@ npm run build
 ### Testing
 
 ```bash
-npm test                    # Run unit tests (41 tests)
+npm test                    # Run unit tests (43 tests)
 npm test -- react-agent     # Run specific test file
 npm run test:watch          # Watch mode
+
+# Ability tests — tool selection accuracy via local Ollama (auto-installs on macOS)
+npm run test:abilities -- --file tests/abilities/core-abilities.test.js
 ```
+
+Ability tests send prompts to a local Ollama instance running Qwen 3 1.7B and verify the model selects the correct tool. No browser or WebGPU needed — runs in ~20s.
 
 The project also includes an E2E browser test suite that validates the full pipeline (user message → LLM reasoning → tool selection → tool execution → response) using Chrome DevTools MCP. See [tests/TESTING.md](tests/TESTING.md) for details.
 

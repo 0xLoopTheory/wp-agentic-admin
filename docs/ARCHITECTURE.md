@@ -357,13 +357,21 @@ The 1.7B model is recommended for most users — it loads faster, uses less VRAM
 
 ## Testing
 
-WP-Agentic-Admin has two layers of testing:
+WP-Agentic-Admin has three layers of testing:
 
 ### Unit Tests (43 tests)
 - `react-agent.test.js` - ReAct loop: JSON parsing, tool routing, iteration limits, repeated call detection, error handling
 - `message-router.test.js` - 3-tier message routing (workflow, ReAct with/without thinking, conversational)
 - Mocked LLM responses for deterministic testing
 - Run with `npm test`
+
+### Ability Tests (Ollama-backed)
+- Test tool selection accuracy using a local Ollama instance running Qwen 3 1.7B
+- Same system prompt and JSON parser as the browser ReAct agent
+- Pure Node.js — no browser, WebGPU, or webpack build needed
+- Auto-installs Ollama and pulls model on first run
+- **Results:** 100% accuracy (8/8 core tests) in ~20s
+- Run with `npm run test:abilities -- --file tests/abilities/core-abilities.test.js`
 
 ### E2E Browser Tests (27 tests)
 - Run the actual AI model in a real browser against a live WordPress instance
@@ -399,13 +407,24 @@ See [tests/TESTING.md](../tests/TESTING.md) for the full testing guide.
 - Multi-model support — users can choose from dropdown
 - Model preference persisted in localStorage
 
-**v0.5.0 (current):**
+**v0.5.0:**
 - 3-tier message routing: workflow → ReAct (with/without thinking) → conversational
 - Thinking blocks stream live in the chat UI, then collapse into peekable timeline entries
 - ReAct switched to streaming LLM calls for live thinking display
 - Post-tool `/nothink` optimization — thinking disabled after tool results for faster answers
 - Per-message speed stats (prefill/decode tokens per second)
 - `THINKING` message type persisted in session alongside tool calls
+
+**v0.6.0:**
+- Production-ready code quality overhaul
+- Comprehensive AI Fundamentals documentation (12 topics)
+
+**v0.7.0 (current):**
+- Ability test runner replaced: Puppeteer + WebGPU → Ollama (local LLM server)
+- Tests run in ~20s (was 5+ minutes with browser-based harness)
+- Removed Puppeteer dependency, test-harness webpack build, and browser test page
+- Same system prompt and JSON parser as the browser ReAct agent — results are directly comparable
+- Qwen 3 1.7B baseline: 100% tool selection accuracy (8/8 core tests)
 
 **Future Enhancements:**
 - Expanded abilities library (16+ new abilities proposed)

@@ -1,6 +1,6 @@
 # Testing Guide
 
-This project has two layers of testing: **unit tests** (automated, fast) and **E2E browser tests** (manual via Claude Code, slow).
+This project has three layers of testing: **unit tests** (automated, fast), **ability tests** (automated, Ollama-backed), and **E2E browser tests** (manual via Claude Code, slow).
 
 ---
 
@@ -43,6 +43,70 @@ describe( 'ReactAgent', () => {
     } );
 } );
 ```
+
+---
+
+## Ability Tests (Ollama)
+
+Ability tests validate that the LLM correctly selects the right tool for a given user prompt. They use a local Ollama instance running Qwen 3 1.7B — the same model and system prompt as the browser-based ReAct agent, but without WebLLM, WebGPU, or a browser.
+
+### Prerequisites
+
+- **Ollama**: Auto-installed via Homebrew on macOS if not present. On other platforms, install manually from [ollama.com](https://ollama.com/download).
+- The model (`qwen3:1.7b`) is auto-pulled on first run.
+
+### Running
+
+```bash
+npm run test:abilities -- --file tests/abilities/core-abilities.test.js
+```
+
+Options:
+
+```bash
+--model qwen3:1.7b    # Ollama model ID (default: qwen3:1.7b)
+--no-think             # Disable Qwen 3 thinking mode
+--verbose              # Show full LLM responses
+```
+
+### How it works
+
+1. Runner checks for Ollama (installs via `brew install --cask ollama` if missing)
+2. Starts Ollama server if not running
+3. Pulls the model if not available locally
+4. Builds the same system prompt as `react-agent.js` (tool list + JSON format rules)
+5. For each test case, sends a single message to Ollama's OpenAI-compatible API (`/v1/chat/completions`)
+6. Parses the JSON response using the same parser as the ReAct agent
+7. Evaluates: did the model pick the expected tool (or correctly pick no tool)?
+
+### Test file format
+
+```js
+module.exports = {
+    abilities: [
+        {
+            id: 'wp-agentic-admin/plugin-list',
+            label: 'List installed plugins',
+            description: 'List all installed WordPress plugins...',
+        },
+    ],
+    tests: [
+        { input: 'list plugins', expectTool: 'wp-agentic-admin/plugin-list' },
+        { input: 'what is a transient?', expectTool: null },  // No tool expected
+        { input: 'is debug mode on?', expectTool: ['tool-a', 'tool-b'] },  // Either is acceptable
+    ],
+};
+```
+
+### Writing new test files
+
+Copy `tests/abilities/example.test.js` and modify it. Each test file defines:
+- `abilities` — the tools the model can choose from (id, label, description)
+- `tests` — input prompts with expected tool selection
+
+### Baseline results
+
+Qwen 3 1.7B achieves **100% accuracy** (8/8) on core ability tests in ~20s.
 
 ---
 
@@ -205,4 +269,4 @@ Then import it in `tests/e2e/runner.js`.
 
 ## CI Integration
 
-Unit tests run via `npm test` and can be added to any CI pipeline. E2E tests require a browser with WebGPU and are currently manual-only.
+Unit tests run via `npm test` and can be added to any CI pipeline. Ability tests run via `npm run test:abilities` and require Ollama installed on the CI runner. E2E tests require a browser with WebGPU and are currently manual-only.

@@ -7,9 +7,6 @@
  * Usage:
  *   npm run test:abilities -- --file tests/abilities/example.test.js
  *
- * Third-party plugins:
- *   node tests/abilities/runner.js --file ../my-plugin/tests/abilities/my-test.js
- *
  * Test file format:
  *   module.exports = {
  *     abilities: [ ... ],  // Array of ability definitions to register

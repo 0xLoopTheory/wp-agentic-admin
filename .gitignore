@@ -6,8 +6,9 @@ wp-agentic-admin.zip
 tests/e2e/screenshots/
 tests/e2e/RESULTS.md
 build-extensions/
-build-test-harness/
 .vscode/
 .idea/
 *.swp
 *.swo
+hackathon-teasers.md
+hackathon-todo.md

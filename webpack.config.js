@@ -10,10 +10,7 @@
 const defaultConfig = require( '@wordpress/scripts/config/webpack.config' );
 const path = require( 'path' );
 
-// BUILD_TARGET=test-harness builds only the test harness bundle
-const isTestHarness = process.env.BUILD_TARGET === 'test-harness';
-
-const mainConfig = {
+module.exports = {
 	...defaultConfig,
 
 	entry: {
@@ -47,21 +44,3 @@ const mainConfig = {
 		runtimeChunk: false, // SW needs runtime included
 	},
 };
-
-const testHarnessConfig = {
-	...defaultConfig,
-
-	entry: {
-		'test-harness': path.resolve(
-			__dirname,
-			'src/extensions/test-harness.js'
-		),
-	},
-
-	output: {
-		...defaultConfig.output,
-		path: path.resolve( __dirname, 'build-test-harness' ),
-	},
-};
-
-module.exports = isTestHarness ? testHarnessConfig : mainConfig;

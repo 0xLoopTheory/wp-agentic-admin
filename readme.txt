@@ -4,7 +4,7 @@ Tags: ai, sre, site reliability, webllm, abilities api
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 0.4.2
+Stable tag: 0.7.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,13 @@ WP Agentic Admin transforms your WordPress admin panel into an intelligent comma
 5. Start chatting!
 
 == Changelog ==
+
+= 0.7.0 =
+* Changed: Ability test runner now uses Ollama (local LLM server) instead of Puppeteer + WebGPU browser
+* Changed: Tests run in ~20s vs 5+ minutes — no browser, no WebGPU, no model download required
+* Removed: Puppeteer dependency and browser-based test harness
+* Removed: `build:test-harness` build step — `npm run test:abilities` runs directly via Node.js
+* Improved: Test runner auto-installs Ollama via Homebrew and pulls models on first run
 
 = 1.2.0 =
 * New: 4 WP-CLI-inspired abilities for common maintenance tasks:
