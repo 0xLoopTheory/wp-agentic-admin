@@ -667,7 +667,20 @@ class ReactAgent {
 	 * @return {Promise<Object>} Tool result
 	 */
 	async executeTool( toolId, args, userMessage ) {
-		const tool = this.toolRegistry.get( toolId );
+		let tool = this.toolRegistry.get( toolId );
+
+		// Small models sometimes omit the namespace prefix (e.g. "search-wp-hooks"
+		// instead of "wp-agentic-admin/search-wp-hooks"). Try a suffix match.
+		if ( ! tool && this.toolRegistry.getAll ) {
+			const allTools = this.toolRegistry.getAll();
+			const match = allTools.find( ( t ) =>
+				t.id.endsWith( `/${ toolId }` )
+			);
+			if ( match ) {
+				tool = match;
+				toolId = match.id;
+			}
+		}
 
 		if ( ! tool ) {
 			log.error( 'Tool not found:', toolId );
