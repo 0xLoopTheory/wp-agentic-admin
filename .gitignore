@@ -6,6 +6,7 @@ wp-agentic-admin.zip
 tests/e2e/screenshots/
 tests/e2e/RESULTS.md
 build-extensions/
+.claude/settings.local.json
 .vscode/
 .idea/
 *.swp

@@ -4,7 +4,7 @@ Tags: ai, sre, site reliability, webllm, abilities api
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 0.7.1
+Stable tag: 0.8.0
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,13 @@ WP Agentic Admin transforms your WordPress admin panel into an intelligent comma
 5. Start chatting!
 
 == Changelog ==
+
+= 0.8.0 =
+* New: `.claude/` project config with CLAUDE.md rules, settings, and 5 contributor skills
+* New: `/release`, `/test`, `/new-ability`, `/update-docs`, `/pr` slash commands for Claude Code
+* New: `.mcp.json` with wp-devdocs, wp-blockmarkup, and wp-playground MCP servers
+* New: Chrome DevTools MCP plugin auto-enabled for E2E testing
+* New: Pre-configured permissions (safe commands allowed, destructive commands denied)
 
 = 0.7.1 =
 * New: Ability metadata auto-loaded from JS source files — no static manifest to maintain

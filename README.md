@@ -292,6 +292,20 @@ Ability tests send prompts to a local Ollama instance running Qwen 3 1.7B and ve
 
 The project also includes an E2E browser test suite that validates the full pipeline (user message → LLM reasoning → tool selection → tool execution → response) using Chrome DevTools MCP. See [tests/TESTING.md](tests/TESTING.md) for details.
 
+### Claude Code Integration
+
+This project includes a `.claude/` folder with project rules, MCP servers, and pre-built skills for [Claude Code](https://claude.ai/claude-code) contributors:
+
+| Skill | Usage | Description |
+|-------|-------|-------------|
+| `/release` | `/release 0.8.0` | Version bump all files, commit, push, and create GitHub release |
+| `/test` | `/test` | Run lint, unit tests, and ability tests in sequence |
+| `/new-ability` | `/new-ability cache-warm` | Scaffold PHP + JS ability files with registration and test case |
+| `/update-docs` | `/update-docs` | Sync all documentation with current codebase state |
+| `/pr` | `/pr` | Create a PR with branch naming, pre-flight checks, and template |
+
+The `.mcp.json` at the project root configures WordPress-specific MCP servers (`wp-devdocs`, `wp-blockmarkup`, `wp-playground`) that are automatically available to all contributors using Claude Code.
+
 ### Technology Stack
 
 **Client-Side:**

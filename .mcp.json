@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "wp-devdocs": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "pluginslab/wp-devdocs-mcp"]
+    },
+    "wp-blockmarkup": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "pluginslab/wp-blockmarkup-mcp"]
+    },
+    "wp-playground": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "pluginslab/wp-playground-mcp"]
+    }
+  }
+}
