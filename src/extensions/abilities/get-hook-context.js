@@ -156,7 +156,8 @@ export function registerGetHookContext() {
 					'@pluginslab/wp-devdocs-wasm'
 				);
 				/* eslint-enable import/no-unresolved */
-				const result = await getHookContext( params.hook );
+				const hookName = params.hook || params.hook_name || params.name || '';
+				const result = await getHookContext( hookName );
 				return { success: true, ...result };
 			} catch ( err ) {
 				return {

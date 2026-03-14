@@ -136,9 +136,11 @@ export function registerSearchWpHooks() {
 					'@pluginslab/wp-devdocs-wasm'
 				);
 				/* eslint-enable import/no-unresolved */
-				const results = await searchHooks( params.query );
-				return { success: true, query: params.query, ...results };
+				const query = params.query || params.keyword || params.search || '';
+				const results = await searchHooks( query );
+				return { success: true, query, ...results };
 			} catch ( err ) {
+				console.error( '[search-wp-hooks] WASM load error:', err );
 				return {
 					success: false,
 					message:

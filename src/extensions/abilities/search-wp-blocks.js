@@ -132,8 +132,9 @@ export function registerSearchWpBlocks() {
 					'@pluginslab/wp-devdocs-wasm'
 				);
 				/* eslint-enable import/no-unresolved */
-				const results = await searchBlocks( params.query );
-				return { success: true, query: params.query, ...results };
+				const query = params.query || params.keyword || params.search || '';
+				const results = await searchBlocks( query );
+				return { success: true, query, ...results };
 			} catch ( err ) {
 				return {
 					success: false,

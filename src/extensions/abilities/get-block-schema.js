@@ -203,7 +203,8 @@ export function registerGetBlockSchema() {
 					'@pluginslab/wp-devdocs-wasm'
 				);
 				/* eslint-enable import/no-unresolved */
-				const result = await getBlockSchema( params.block );
+				const blockName = params.block || params.block_name || params.name || '';
+				const result = await getBlockSchema( blockName );
 				return { success: true, ...result };
 			} catch ( err ) {
 				return {

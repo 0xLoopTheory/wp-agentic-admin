@@ -3,6 +3,7 @@
  *
  * Extends the default @wordpress/scripts config to add:
  * - Service Worker as a separate entry point (no chunking, self-contained)
+ * - Browser entry point resolution for @pluginslab/wp-devdocs-wasm
  *
  * @package
  */
@@ -13,12 +14,18 @@ const path = require( 'path' );
 module.exports = {
 	...defaultConfig,
 
-	// Mark the optional WASM package as external — it's loaded via dynamic import()
-	// at runtime and should not be bundled. If not installed, the import fails
-	// gracefully in the ability execute() catch block.
-	externals: {
-		...( defaultConfig.externals || {} ),
-		'@pluginslab/wp-devdocs-wasm': 'commonjs @pluginslab/wp-devdocs-wasm',
+	resolve: {
+		...defaultConfig.resolve,
+		// Use the browser entry point for the WASM package (no Node.js APIs).
+		// The package exports { browser: './src/browser.js' } which uses
+		// embedded base64 databases instead of node:fs.
+		conditionNames: [
+			'browser',
+			'import',
+			'module',
+			'default',
+			...( defaultConfig.resolve?.conditionNames || [] ),
+		],
 	},
 
 	entry: {
