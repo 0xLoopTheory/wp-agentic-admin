@@ -477,6 +477,84 @@ Can't:  site-health + error-log-read in parallel → Total: 2s
 
 **Future enhancement:** Parallel tool execution is possible but not yet implemented.
 
+## End-to-End Walkthrough
+
+Here's what happens from the moment a user types a message to the final response. This traces the full path through the system.
+
+**User types:** *"Why is my site slow?"*
+
+### Step 1: Message Router (< 1ms)
+
+The `MessageRouter` receives the raw text and extracts keywords:
+
+```
+Input:  "Why is my site slow?"
+Keywords extracted: ["site", "slow"]
+```
+
+It scores every registered ability by keyword overlap. `site-health` scores highest because its keywords include `["site", "health", "slow", "performance"]`.
+
+**Result:** Top 5 abilities selected → passed to the ReAct agent.
+
+### Step 2: System Prompt Assembly (< 1ms)
+
+The `ReactAgent` builds a system prompt containing:
+1. The agent's role and behavioral rules
+2. Tool descriptions for only the top 5 abilities (not all 14+)
+3. The expected JSON format for tool calls
+4. The conversation history
+
+This keeps the prompt well within the 4,096 token context window.
+
+### Step 3: ReAct Iteration 1 — Reasoning (2-3s)
+
+The LLM generates its first response:
+
+```
+Thought: The user reports slow performance. I should run a site health
+check to gather diagnostics before making recommendations.
+
+Action: {"tool": "site-health", "input": {}}
+```
+
+The JSON parser extracts the tool call. Since `site-health` is read-only, no confirmation dialog is shown.
+
+### Step 4: Ability Execution (100-500ms)
+
+The system calls the WordPress REST API:
+
+```
+GET /wp-json/wp-agentic-admin/v1/abilities/site-health/execute
+```
+
+WordPress runs the PHP callback, which gathers page load time, active plugin count, PHP version, memory usage, and database health. The response is truncated to 2,000 characters and fed back as an **Observation**.
+
+### Step 5: ReAct Iteration 2 — Follow-up (2-3s)
+
+The LLM now has real data:
+
+```
+Observation: {"success": true, "page_load": "4.2s", "active_plugins": 38,
+"memory_usage": "245MB/256MB", "php_version": "8.2.4"}
+
+Thought: The site has 38 active plugins and is nearly out of memory
+(245MB/256MB). The high plugin count is likely the main cause.
+I have enough information to advise the user.
+
+Response: Your site is loading in 4.2 seconds, which is slow. The main
+issues are: **38 active plugins** (most sites need 15-20) and **memory
+nearly maxed out** (245MB of 256MB). I'd recommend deactivating unused
+plugins and increasing PHP memory_limit to 512MB.
+```
+
+No tool call in the response → the ReAct loop ends. The response streams to the user token-by-token.
+
+### Step 6: Chat UI
+
+The `ChatContainer` component renders the streamed response with markdown formatting. The conversation is saved to `ChatSession` for history persistence.
+
+**Total time:** ~5-7 seconds (keyword match + 2 LLM iterations + 1 REST API call).
+
 ## Future Improvements
 
 **Planned for hackathon/post-hackathon:**

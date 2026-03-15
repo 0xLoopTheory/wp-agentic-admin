@@ -220,17 +220,6 @@ This optimizes the accuracy-to-size ratio by preserving precision where it matte
 
 WebLLM's q4f16 variants use mixed precision strategies, though the exact distribution is internal to the compiled model.
 
-## Future of Quantization
-
-Research is pushing toward even lower bit-widths:
-
-**Emerging formats:**
-- **q3** (3-bit) — 75% smaller than q4, minimal accuracy loss
-- **q2** (2-bit) — 50% smaller than q4, experimental
-- **q1.58** (ternary) — Weights limited to {-1, 0, +1}
-
-As these mature, browser-based AI will run even larger models (14B+) on consumer hardware.
-
 ## Summary
 
 Quantization reduces model size by lowering numerical precision. WP Agentic Admin uses q4f16 quantization to fit 7-billion parameter models into ~4.5GB, making browser-based AI practical. The trade-off is slight accuracy loss (~5%), which is acceptable for structured WordPress tasks. Models are pre-quantized and distributed via CDN — your browser downloads the compressed version directly.

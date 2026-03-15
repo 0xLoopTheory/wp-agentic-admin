@@ -564,6 +564,75 @@ Reasoning: Full ReAct loop
 
 **Decision:** Keyword matching is simpler, deterministic, and Phase 3 provides recovery mechanism.
 
+## Testing Tool Selection (For LLM Testers)
+
+If you're writing tests for tool selection accuracy, here's how to approach it.
+
+### What to Test
+
+Tool selection has two layers that need separate testing:
+
+1. **Keyword matching (Phase 1)** — deterministic, fast, testable with unit tests
+2. **LLM tool choice (Phase 2)** — probabilistic, requires ability tests against a real model
+
+### Writing Keyword Matching Tests
+
+These go in `src/extensions/services/__tests__/` and run with `npm test`. They verify that the right abilities surface for a given message:
+
+```javascript
+// Test obvious matches
+test( 'selects plugin-list for "show me my plugins"', () => {
+    const result = router.selectTools( 'show me my plugins' );
+    expect( result[ 0 ].id ).toContain( 'plugin-list' );
+} );
+
+// Test ambiguous messages (user doesn't use exact keywords)
+test( 'selects site-health for "everything feels sluggish"', () => {
+    const result = router.selectTools( 'everything feels sluggish' );
+    expect( result.map( t => t.id ) ).toContain( 'wp-agentic-admin/site-health' );
+} );
+
+// Test zero-match fallback
+test( 'falls back to all tools for unrecognizable input', () => {
+    const result = router.selectTools( 'asdfghjkl' );
+    expect( result.length ).toBeGreaterThan( 5 );
+} );
+```
+
+### Writing Edge-Case Prompts
+
+The hardest cases for keyword matching are messages that don't use obvious terms. These are the most valuable tests to write:
+
+| User says | Expected ability | Why it's hard |
+|-----------|-----------------|---------------|
+| "everything feels sluggish" | `site-health` | No keyword "slow", "performance", or "health" |
+| "I think I got hacked" | `security-scan` | No keyword "security" — uses colloquial language |
+| "clean up old drafts" | `revision-cleanup` | "drafts" isn't "revisions" |
+| "what's eating my disk space" | `disk-usage` | Metaphorical phrasing |
+| "check if anything needs updating" | `update-check` | Indirect reference |
+
+If a test fails, the fix is usually adding a keyword to the ability's `keywords` array — not changing the matching algorithm.
+
+### Writing Ability Tests (Full LLM Loop)
+
+These go in `tests/abilities/core-abilities.test.js` and run against Ollama with a real Qwen 3 1.7B model:
+
+```javascript
+{
+    name: 'should select site-health for vague performance complaint',
+    message: 'my WordPress admin is taking forever to load pages',
+    expectedTool: 'site-health',
+}
+```
+
+These tests verify that the full pipeline (keyword match → LLM reasoning → tool call) selects the right tool. Run with `npm run test:abilities`.
+
+### When to Add Tests
+
+- **New ability added** → add at least one obvious and one ambiguous test prompt
+- **User reports wrong tool selected** → add their exact message as a regression test
+- **Keywords changed** → re-run full suite to check for regressions
+
 ## Summary
 
 Tool selection at scale uses a three-phase RLM-inspired approach: (1) Keyword-based pre-filtering reduces 100+ tools to top 5 candidates with zero latency, (2) Focused ReAct executes with minimal context, (3) Dynamic injection allows the LLM to search for additional tools mid-conversation. This strategy saves 90-95% of context window space, maintains decision quality, and works automatically with third-party abilities. Implementation is deterministic (Phase 1), flexible (Phase 3), and extensible (future semantic search).

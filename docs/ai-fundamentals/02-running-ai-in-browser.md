@@ -90,38 +90,11 @@ Once the model is downloaded, WP Agentic Admin works without internet:
 
 ## The Trade-Off: Hardware Requirements
 
-Running AI in the browser requires a GPU. Not just any GPU — one that supports **WebGPU**, the browser standard for graphics and compute tasks.
+Running AI in the browser requires a WebGPU-capable GPU and enough VRAM to hold the model. For detailed hardware specs, GPU compatibility, and VRAM requirements, see [Ch. 3 — WebGPU](03-webgpu.md#gpu-requirements).
 
-### Minimum Requirements
+**Quick summary:** Most modern devices work — Apple M1+, NVIDIA GTX 1000+, Intel Iris Xe, or AMD RDNA. Chrome 113+ or Edge 113+ required.
 
-| Component | Requirement |
-|-----------|-------------|
-| **GPU** | Integrated or dedicated with 4GB+ VRAM |
-| **Browser** | Chrome 113+, Edge 113+ |
-| **OS** | Windows 10+, macOS 11+, Linux (recent) |
-| **Model** | Qwen 3 1.7B (~1.2GB VRAM) |
-
-### Recommended
-
-| Component | Requirement |
-|-----------|-------------|
-| **GPU** | Dedicated with 6GB+ VRAM |
-| **Browser** | Latest Chrome/Edge |
-| **Model** | Qwen 2.5 7B (~4.5GB VRAM) |
-
-**Examples of compatible hardware:**
-- MacBook Pro (M1/M2/M3 with 8GB+ unified memory)
-- Gaming laptops with NVIDIA RTX 3050+
-- Desktop PCs with AMD RX 6600+ or NVIDIA GTX 1660+
-- Modern integrated graphics (Intel Iris Xe, AMD Radeon 680M)
-
-### What About Older/Weaker Hardware?
-
-If your device doesn't support WebGPU or lacks sufficient VRAM, WP Agentic Admin offers fallback options:
-
-1. **WASM CPU Fallback** — Slower but works on any device
-2. **External AI Provider** (Hackathon Goal #3) — Use cloud APIs as alternative
-3. **Model Switching** — Use smaller models (future: 0.5B models)
+If your device doesn't support WebGPU, fallback options include WASM CPU mode (slower), external AI providers, or smaller models.
 
 ## Download Once, Use Forever
 

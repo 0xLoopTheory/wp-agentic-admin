@@ -4,7 +4,7 @@ Tags: ai, sre, site reliability, webllm, abilities api
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 0.9.1
+Stable tag: 0.9.2
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,15 @@ WP Agentic Admin transforms your WordPress admin panel into an intelligent comma
 5. Start chatting!
 
 == Changelog ==
+
+= 0.9.2 =
+* New: AI Fundamentals glossary with ~60 terms linked back to source chapters
+* New: Chapter 13 — "Designing Abilities" guide for Writers and UX contributors
+* New: End-to-end walkthrough in Chapter 8 tracing a message through the full system
+* New: Testing guidance section in Chapter 11 for LLM Testers writing tool selection tests
+* Improved: Trimmed overly theoretical content from Chapters 1, 2, and 5
+* Improved: Deduplicated hardware requirements — Chapter 3 is now single source of truth
+* Improved: INDEX.md updated with new "For Writers & Designers" section
 
 = 0.9.1 =
 * Cleaned up: Removed stale version annotations (v1.0–v2.0) from comments across 11 source files

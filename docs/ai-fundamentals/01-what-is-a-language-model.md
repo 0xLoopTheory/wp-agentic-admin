@@ -70,22 +70,9 @@ A small model in WP Agentic Admin:
 
 The tools compensate for the smaller model's limited knowledge.
 
-## Temperature and Sampling
+## Temperature
 
-When a language model generates text, it doesn't always pick the most likely next word — that would make responses repetitive and boring. Instead, models use **temperature** to control randomness:
-
-| Temperature | Behavior | Use Case |
-|-------------|----------|----------|
-| **0.0** | Always picks most likely word | Deterministic, factual tasks |
-| **0.3 - 0.7** | Slightly varied responses | General purpose (WP Agentic Admin uses 0.6) |
-| **1.0+** | Creative, unpredictable | Creative writing, brainstorming |
-
-### Why WP Agentic Admin Uses Temperature 0.6
-
-A moderate temperature balances:
-- **Reliability** — Tool calls use consistent JSON format
-- **Natural Responses** — Explanations sound human, not robotic
-- **Variety** — Avoids repetitive phrasing
+**Temperature** controls how random a model's output is. Low values (0.0-0.3) make output deterministic and focused; high values (0.7-1.0+) make it creative and varied. WP Agentic Admin uses **0.6** — reliable enough for structured tool calls, natural enough for human-readable explanations.
 
 ## Token Limits
 

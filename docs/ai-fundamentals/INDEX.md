@@ -27,6 +27,14 @@ This guide covers everything from the basics of language models to advanced opti
 11. [Tool Selection at Scale (RLM Approach)](11-tool-selection-at-scale.md)
 12. [Debugging & Development](12-debugging-development.md)
 
+## For Writers & Designers
+
+13. [Designing Abilities](13-designing-abilities.md)
+
+## Reference
+
+- [Glossary](glossary.md)
+
 ## Additional Resources
 
 - [Architecture Overview](../ARCHITECTURE.md)
