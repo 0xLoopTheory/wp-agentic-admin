@@ -305,6 +305,7 @@ This project includes a `.claude/` folder with project rules, MCP servers, and p
 | `/new-ability` | `/new-ability cache-warm` | Scaffold PHP + JS ability files with registration and test case |
 | `/update-docs` | `/update-docs` | Sync all documentation with current codebase state |
 | `/pr` | `/pr` | Create a PR with branch naming, pre-flight checks, and template |
+| `/issue` | `/issue add backup-check` | Create a GitHub issue via interview with codebase inspection |
 
 The `.mcp.json` at the project root configures WordPress-specific MCP servers (`wp-devdocs`, `wp-blockmarkup`, `wp-playground`) that are automatically available to all contributors using Claude Code.
 

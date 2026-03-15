@@ -4,7 +4,7 @@ Tags: ai, sre, site reliability, webllm, abilities api
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 0.9.2
+Stable tag: 0.9.3
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,12 @@ WP Agentic Admin transforms your WordPress admin panel into an intelligent comma
 5. Start chatting!
 
 == Changelog ==
+
+= 0.9.3 =
+* New: ONBOARDING.md — step-by-step hackathon guide with project tour and role-specific instructions
+* New: `/issue` Claude Code skill for creating GitHub issues via interview with codebase inspection
+* Improved: CLOUDFEST_HACKATHON.md simplified — removed duplicated role descriptions and project summary, now links to ONBOARDING.md
+* Improved: README.md updated with `/issue` skill in Claude Code integration table
 
 = 0.9.2 =
 * New: AI Fundamentals glossary with ~60 terms linked back to source chapters

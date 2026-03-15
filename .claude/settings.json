@@ -18,6 +18,7 @@
       "Bash(git checkout -b *)",
       "Bash(gh pr *)",
       "Bash(gh release *)",
+      "Bash(gh issue *)",
       "Bash(ollama *)",
       "Bash(node tests/*)",
       "Bash(wc *)",

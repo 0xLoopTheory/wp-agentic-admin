@@ -1,19 +1,6 @@
 # WP Agentic Admin - CloudFest Hackathon 2026
 
-## Where We Start
-
-A working WordPress plugin (v0.8.0) with:
-- A local AI assistant running Qwen 3 1.7B in the browser via WebGPU (no cloud, no API keys)
-- 14 abilities (error logs, plugin management, caching, database optimization, site health, cron, revisions, etc.)
-- 4 multi-step workflows (site cleanup, performance check, plugin audit, database maintenance)
-- ReAct agent loop with 93-100% tool selection accuracy
-- Service Worker model persistence across page navigations
-- Full test suite (43 unit tests, 18 ability tests)
-- Extensible Abilities API for third-party plugins
-
-**The chat works, but it lives on its own settings page. The ability set covers SRE basics but misses common admin tasks. The AI only runs locally in WebGPU-capable browsers.**
-
----
+> **First time here?** Start with the [Onboarding Guide](ONBOARDING.md) — a walkthrough of the project, the codebase, and your role.
 
 ## Hackathon Goals
 
@@ -134,33 +121,9 @@ The demo flow:
 
 ## Team Roles
 
-### PHP Developers
+See the [Onboarding Guide](ONBOARDING.md#part-2-your-role) for detailed role descriptions, workspace locations, starter files, and recommended reading for each role.
 
-As a PHP developer, your job is to implement new abilities. Each ability is a self-contained PHP file in `includes/abilities/` that registers a REST endpoint via `register_agentic_ability()`. You'll work from use cases defined by Writers, follow the patterns in [ABILITIES-GUIDE.md](docs/ABILITIES-GUIDE.md), and coordinate with a JS developer who builds the chat-side counterpart. You know WordPress hooks, REST API, and functions like `get_plugins()`, `wp_count_posts()`, `WP_Debug_Data`.
-
-### React/JS Developers
-
-As a JS developer, your job spans two areas. First: for every new ability, you write the JavaScript file in `src/extensions/abilities/` that registers the chat interface — keywords, label, summarize function, execute function, parseIntent if needed. You pair with the PHP developer building the backend. Second: the sidebar UI — the biggest React task of the hackathon. Moving the chat panel from a dedicated page into a persistent sidebar that works on every wp-admin page. Stack is React via `@wordpress/element` and `@wordpress/scripts`.
-
-### AI Enthusiasts
-
-As an AI enthusiast, your job is to make the ReAct agent smarter. The agent currently sends all 14 tool descriptions to the LLM on every request — this won't scale to 30+. You'll work on tool selection at scale (pre-filtering tools before they hit the LLM), prompt optimization, and the external AI provider architecture. You should be comfortable reading `react-agent.js`, `message-router.js`, and the system prompt construction in `chat-orchestrator.js`. The [AI Fundamentals guide](docs/ai-fundamentals/INDEX.md) covers the full stack.
-
-### LLM Testers
-
-As an LLM tester, your job is to verify that the AI picks the right tool for the right user message. Every new ability needs test cases in `tests/abilities/core-abilities.test.js`. You write the natural language inputs a user would say, define which ability should be selected, and run the test suite against a local Qwen 3 1.7B via Ollama. You work in lockstep with PHP and JS developers — when they ship an ability, you ship the test. Run tests with `npm run test:abilities`.
-
-### UX/Design Passionates
-
-As a UX designer, your job is to make the AI assistant feel trustworthy and natural inside wp-admin. The sidebar interaction pattern (how it opens, how it sits alongside content, how it behaves on different screen sizes), the model loading experience (a 1.2GB download needs clear progress and expectations), confirmation dialogs for destructive actions, and the overall chat UX. You produce designs, mockups, or CSS that React/JS developers implement. Think about the WordPress admin user who has never used AI before.
-
-### Writers
-
-As a writer, your job is to invent new use cases for the AI assistant. Think about what a WordPress site admin does every day and ask: "could the AI help with this?" For each use case you define: what the user would say (natural language triggers), what the AI should do (which WordPress functions/data), what the response should look like, and whether it's read-only or destructive. Your output becomes the spec that PHP and JS developers build from. You don't need to code — you need to understand WordPress admin workflows. If a use case needs a new ability, great — you've just defined one.
-
-### DevOps Experts
-
-As a DevOps expert, your job is to think like a hosting company. You know what site admins and support staff deal with daily — server health, disk space, update cycles, cron issues, backup verification. You bring that operational perspective to the abilities we build and the ones we're missing. You also work on infrastructure: CI/CD workflows (GitHub Actions for linting and testing), the LAN AI feature (connecting to a local Ollama/llama.cpp server on the network), and WP Playground setup for quick testing. If you see an SRE use case we haven't thought of, flag it.
+**Roles:** PHP Developers, React/JS Developers, AI Enthusiasts, LLM Testers, UX/Design Contributors, Writers, DevOps Experts.
 
 ---
 
@@ -361,9 +324,7 @@ Embed WordPress documentation in vector database. Use RAG for technical question
 
 ## 📝 Notes
 
-**Must-have vs Stretch:** Goals 1 and 2 define hackathon success. Goals 3 and 4 are stretch — impressive if done, but the project is a win without them.
-
-**How abilities get built:** A Writer defines the use case (what the user says, what should happen, what the response looks like). A PHP dev implements it. An LLM Tester writes the test case. Each ability is self-contained — see `ABILITIES-GUIDE.md`.
+**Must-have vs Stretch:** Goals 1 and 2 define hackathon success. Goals 3-5 are stretch — impressive if done, but the project is a win without them.
 
 **Priority Emerges:** If a feature becomes critical during development, it becomes a priority. Stay flexible.
 
