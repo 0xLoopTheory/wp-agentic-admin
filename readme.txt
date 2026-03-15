@@ -4,7 +4,7 @@ Tags: ai, sre, site reliability, webllm, abilities api
 Requires at least: 6.9
 Tested up to: 6.9
 Requires PHP: 8.2
-Stable tag: 0.9.3
+Stable tag: 0.9.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,10 @@ WP Agentic Admin transforms your WordPress admin panel into an intelligent comma
 5. Start chatting!
 
 == Changelog ==
+
+= 0.9.4 =
+* Updated: WebLLM upgraded from 0.2.80 to 0.2.82
+* New: `/playground` Claude Code skill for spinning up WordPress Playground with the plugin mounted and activated
 
 = 0.9.3 =
 * New: ONBOARDING.md — step-by-step hackathon guide with project tour and role-specific instructions
