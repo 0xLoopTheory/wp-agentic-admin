@@ -13,6 +13,50 @@ Move the chat from its own admin page into a persistent right sidebar accessible
 **Demo:** Open any wp-admin page, click the toggle, ask "check site health", get a response — without ever leaving the page you were on.
 **Skills needed:** React/JS, CSS, UX/Design
 
+**Stretch: Voice + Context Recording**
+
+Add a voice recording mode that captures speech + browser context for richer requests.
+
+**How it works:**
+- User clicks 🔴 record button in chat
+- Navigates to problem area (slow page, error, etc.)
+- Describes the issue while interacting (clicks, scrolls, selections captured)
+- Clicks stop → agent receives:
+  - Speech transcript (via Whisper tiny in Service Worker)
+  - Current URL, console errors, network timing
+  - Interaction log (what they clicked/scrolled to)
+- Agent uses existing abilities with full context
+
+**Example:**
+```
+User: 🔴 [navigates to slow Posts page]
+User: "This page is really slow and I keep seeing errors"
+User: [clicks error notice, scrolls to show console]
+Agent receives: {
+  transcript: "This page is really slow and I keep seeing errors",
+  context: {
+    url: "/wp-admin/edit.php",
+    consoleErrors: ["TypeError line 42"],
+    timing: {ttfb: 3200, domContentLoaded: 8500},
+    interactions: [{type: "click", selector: ".error-notice"}]
+  }
+}
+Agent: "I see high TTFB and a JS error. Running diagnostics..."
+→ Automatically runs site-health, db-optimize, error-log-read
+Agent: "Found 2400 post revisions slowing queries. Clean them up?"
+```
+
+**Why this matters:** Users can show problems instead of describing them. Agent gets browser state (errors, timing, interactions) automatically — picks the right abilities without explicit instructions.
+
+**Implementation:**
+- Whisper tiny (~40MB) runs in existing Service Worker
+- MediaRecorder + event listeners capture audio + interactions
+- IndexedDB persistence across navigation
+- New abilities: `start-voice-request`, `stop-voice-request`
+- Agent processes recording as enhanced chat message
+
+**Priority:** Nice-to-have for hackathon demo, high impact for real-world UX.
+
 ---
 
 ### Goal 2: Expanded Abilities (must-have)
