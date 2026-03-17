@@ -284,6 +284,75 @@ Give the AI access to WordPress block schemas and hook documentation via an embe
 
 ---
 
+### Goal 10: USB Phone as LLM Server (stretch)
+
+Use a USB-connected iPhone or Android device as a dedicated AI inference server, offloading LLM computation to the phone's Neural Engine/NPU while displaying real-time reasoning on the phone's screen as a second monitor.
+
+**Starting point:** WebLLM runs in the browser on the main device. No option to offload inference to external hardware.
+**Done when:** Users can connect an iOS or Android device via USB, run a companion app on the phone, and the WordPress plugin detects and uses it as the LLM backend via WebUSB. The phone displays live reasoning output (ReAct thoughts, tool selections, token speed, thermal/battery stats) on-screen while serving inference requests.
+**Demo:** Plug iPhone into MacBook running Chrome. Open iOS companion app (keeps screen active). WordPress admin auto-detects the phone via WebUSB. User asks "why is my site slow?" in the WordPress chat. Phone screen shows: ReAct reasoning → tool selection → execution progress. WordPress receives and displays the final answer. Unplug phone → plugin falls back to browser WebLLM gracefully.
+**Skills needed:** Swift/Kotlin (mobile app dev), React/JS (WebUSB integration), Core ML / TensorFlow Lite, USB protocols
+
+**Why this matters:**
+- **Dedicated AI hardware** — Modern phones have powerful neural processors (Apple Neural Engine on A17+, Snapdragon NPU) optimized for on-device inference
+- **Offload compute** — Free up the main machine's GPU/CPU for other work
+- **Always-on charging** — Phone stays powered via USB while serving requests
+- **Second screen visualization** — Phone displays real-time ReAct loop reasoning, tool calls, performance stats — perfect for hackathon demos and debugging
+- **Zero cloud cost** — Still fully local, just distributed across two devices
+
+**Implementation approach:**
+
+**Mobile app (iOS/Android):**
+- iOS: Swift app with Core ML running quantized Qwen models for Apple Neural Engine
+- Android: Kotlin app with TensorFlow Lite / MediaPipe leveraging Snapdragon NPU
+- HTTP server or WebUSB device descriptor for bidirectional communication
+- UI screens:
+  - **Status:** Server running, current request, token speed
+  - **ReAct log:** Live reasoning output (thoughts → tool selection → observations)
+  - **Stats:** Battery level, thermal state, memory usage, inference latency
+- Foreground mode required (acceptable for hackathon demos and dedicated use cases)
+- iOS workarounds for background limitations: silent audio playback or explicit foreground requirement
+
+**WordPress integration:**
+- Add "Connection Mode" setting: `browser` (WebLLM) | `usb-phone` (WebUSB device)
+- WebUSB device discovery on page load (Chrome/Edge only — Safari doesn't support WebUSB)
+- Bidirectional protocol:
+  - Browser → Phone: user message + ability schemas + ReAct state
+  - Phone → Browser: reasoning steps, tool calls, final response
+- Auto-fallback to WebLLM if phone disconnects or WebUSB unsupported
+- Status indicator in chat UI: "🔌 iPhone connected (A17 Neural Engine)"
+
+**Technical details:**
+- **WebUSB limitations:** Chrome/Edge desktop only (no Safari, no iOS browsers — all iOS browsers use WebKit which lacks WebUSB)
+- **USB protocols:** WebUSB (Chrome API) or USB tethering (creates network interface, simpler HTTP)
+- **EU sideloading:** iOS 17.4+ allows sideloading in EU via TestFlight (100 testers, 90-day builds), AltStore (free Apple ID, 7-day refresh), or alternative app marketplaces
+- **Model format:** Core ML (iOS), TensorFlow Lite (Android), quantized to fit on-device (4-bit GGUF or INT4)
+
+**Demo flow:**
+1. Connect iPhone to MacBook via USB
+2. Launch iOS companion app (stays in foreground)
+3. Open WordPress admin in Chrome
+4. Plugin detects phone via WebUSB, switches to `usb-phone` mode
+5. User: "My site is throwing 500 errors"
+6. **Phone screen shows:**
+   - "Received: My site is throwing 500 errors"
+   - "Reasoning: Need to check error logs first"
+   - "Tool: error-log-read"
+   - "Observation: Fatal error in broken-plugin/main.php line 42"
+   - "Reasoning: Plugin is broken, suggest deactivation"
+   - Token speed: 38 tok/s | Thermal: nominal | Battery: 87%
+7. **WordPress shows:** "Found a fatal error in the 'broken-plugin' plugin. Would you like me to deactivate it?"
+8. Unplug phone → "Connection lost, switching to browser mode" → WebLLM takes over
+
+**Stretch features:**
+- **Multi-device support:** Connect multiple phones for load balancing or A/B model testing
+- **Model selection:** Choose which quantized model to run on the phone (Qwen 1.7B vs 7B)
+- **Remote access:** Expose phone over local network (not just USB) for wireless operation
+
+**Priority:** Stretch goal. High demo value (second screen + dedicated AI hardware is compelling), significant cross-platform dev effort. If completed, this would be a standout hackathon feature.
+
+---
+
 ## What Success Looks Like (March 24 Main Stage)
 
 **"We started with an AI assistant locked to one page with 14 tools. Now it's a sidebar on every admin page with 25+ tools. It reads your files, queries your database, searches the web, and works even without WebGPU — with two tiers of local AI and zero cloud required."**
