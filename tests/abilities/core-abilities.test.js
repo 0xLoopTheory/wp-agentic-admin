@@ -66,6 +66,16 @@ module.exports = {
 			expectTool: 'wp-agentic-admin/update-check',
 		},
 
+		// ── Error log search ──────────────────────────────────────
+		{
+			input: 'search the error log for fatal errors',
+			expectTool: 'wp-agentic-admin/error-log-search',
+		},
+		{
+			input: 'filter the log for database warnings',
+			expectTool: 'wp-agentic-admin/error-log-search',
+		},
+
 		// ── Disk usage ────────────────────────────────────────────
 		{
 			input: 'how much disk space is my site using?',
