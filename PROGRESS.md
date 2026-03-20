@@ -11,14 +11,19 @@ Live progress for the WP Agentic Admin hackathon project. Updated as milestones 
 - [x] **Cross-linked scaling issues** — #20 (tool selection at scale) ↔ #37 (contextual skill loading)
 - [x] **Contributor notes posted** on #37 with starting points, constraints, and dev setup
 
-### 2 More Abilities + Gutenberg Sidebar Approved! — security-scan, post-list, editor sidebar
-- **security-scan** (PR #57 by @ivdimova) — 6 security checks (WP_DEBUG, file permissions, auth salts, version exposure, directory listing), grouped by severity
-- **post-list** (PR #59 by @ivdimova) — list posts with status/type filters, `parseIntent` for natural language extraction ("show me draft posts")
-- **editor sidebar** (PR #52 by @Stefan0x) — Gutenberg `PluginSidebar` with AI chat, `core/get-editor-blocks` ability, shares WebLLM via Service Worker. Approved, merging after conflict resolution.
-- **f32 fallback model** (PR #61 by @AlexanderMelde) — auto-detect `shader-f16` support and fall back to f32 models. Changes requested on WPCS formatting.
-- **HTTP error message** (PR #50 by @robert81) — specific error when accessing over HTTP. Changes requested to remove debug file.
+### 3 More Abilities Merged! — error-log-search, opcode-cache-status, backup-check
+- **error-log-search** (PR #65) — search/filter the error log by keyword with context lines
+- **opcode-cache-status** (PR #67) — check PHP OPcache status and hit rates
+- **backup-check** (PR #72) — detect installed backup plugins and last backup status
 
-Full suite **32/33 (97%)** — one pre-existing flaky test. That's **21 abilities**, **8 PRs merged**, and **3 more in review**.
+Full suite **37/39 (95%)** — 2 pre-existing flaky tests. That's **24 abilities**, **11 PRs merged**, 5 contributors, and 3 more PRs in review.
+
+### 2 More Abilities + Gutenberg Sidebar Approved! — security-scan, post-list, editor sidebar
+- **security-scan** (PR #57) — 6 security checks grouped by severity
+- **post-list** (PR #59) — list posts with natural language filters
+- **editor sidebar** (PR #52 by @Stefan0x) — Gutenberg `PluginSidebar` with AI chat. Approved, merging after conflict resolution.
+- **f32 fallback model** (PR #61 by @AlexanderMelde) — auto-detect `shader-f16` and fall back to f32. Changes requested on formatting.
+- **HTTP error message** (PR #50 by @robert81) — specific error over HTTP. Changes requested to remove debug file.
 
 ### 4 More PRs Merged! — update-check, disk-usage, comment-stats, debug tooling
 A batch of 4 PRs merged in one round — all tested together against Qwen 3 1.7B via Ollama, **29/29 (100%)** across all abilities:
@@ -36,10 +41,11 @@ A **user-list ability** that lists all WordPress users with roles, registration 
 Our first hackathon contribution! A **theme-list ability** listing installed themes with active/inactive status, version, and parent theme info. Full suite **21/21 (100%)**.
 
 ### Contributors
-- ivdimova — theme-list (#40), user-list (#41), update-check (#42), disk-usage (#46), comment-stats (#49), testing-prompt (#47), security-scan (#57), post-list (#59)
-- Stefan0x — editor sidebar (#52)
+- ivdimova — theme-list (#40), user-list (#41), update-check (#42), disk-usage (#46), comment-stats (#49), testing-prompt (#47), security-scan (#57), post-list (#59), error-log-search (#65), opcode-cache-status (#67), backup-check (#72)
+- Stefan0x — editor sidebar (#52, approved), model unload dropdown (#71, in review)
 - AlexanderMelde — f32 fallback model (#61, in review)
 - robert81 — HTTP error message (#50, in review)
+- janvogt — feedback thumbs up/down (#70, in review)
 
 ---
 
@@ -53,8 +59,8 @@ Our first hackathon contribution! A **theme-list ability** listing installed the
 - [x] Streaming `<think>` blocks with collapsible UI
 - [x] Post-tool nothink optimization for faster answers
 
-### Abilities (21 total)
-- [x] 19 plugin abilities: plugin list/activate/deactivate, theme list, user list, update check, disk usage, comment stats, security scan, post list, cache flush, db optimize, error log, cron list, revision cleanup, rewrite list/flush, site health, transient flush
+### Abilities (24 total)
+- [x] 22 plugin abilities: plugin list/activate/deactivate, theme list, user list, update check, disk usage, comment stats, security scan, post list, error log search, opcode cache status, backup check, cache flush, db optimize, error log, cron list, revision cleanup, rewrite list/flush, site health, transient flush
 - [x] 2 core WordPress wrappers: get-site-info, get-environment-info
 
 ### Testing
