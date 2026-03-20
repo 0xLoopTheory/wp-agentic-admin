@@ -27,6 +27,9 @@ import { registerUserList } from './user-list';
 import { registerUpdateCheck } from './update-check';
 import { registerDiskUsage } from './disk-usage';
 import { registerCommentStats } from './comment-stats';
+import { registerSecurityScan } from './security-scan';
+import { registerPostList } from './post-list';
+import { registerErrorLogSearch } from './error-log-search';
 import { registerOpcodeCacheStatus } from './opcode-cache-status';
 import { registerCoreSiteInfo } from './core-site-info';
 import { registerCoreEnvironmentInfo } from './core-environment-info';
@@ -49,6 +52,9 @@ export { registerUserList } from './user-list';
 export { registerUpdateCheck } from './update-check';
 export { registerDiskUsage } from './disk-usage';
 export { registerCommentStats } from './comment-stats';
+export { registerSecurityScan } from './security-scan';
+export { registerPostList } from './post-list';
+export { registerErrorLogSearch } from './error-log-search';
 export { registerOpcodeCacheStatus } from './opcode-cache-status';
 export { registerCoreSiteInfo } from './core-site-info';
 export { registerCoreEnvironmentInfo } from './core-environment-info';
@@ -80,6 +86,9 @@ export function registerAllAbilities() {
 	registerUpdateCheck();
 	registerDiskUsage();
 	registerCommentStats();
+	registerSecurityScan();
+	registerPostList();
+	registerErrorLogSearch();
 	registerOpcodeCacheStatus();
 
 	// WordPress 6.9+ core ability wrappers
