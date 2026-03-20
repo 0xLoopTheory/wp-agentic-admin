@@ -56,6 +56,16 @@ module.exports = {
 			expectTool: 'wp-agentic-admin/user-list',
 		},
 
+		// ── Security ──────────────────────────────────────────────
+		{
+			input: 'run a security scan on my site',
+			expectTool: 'wp-agentic-admin/security-scan',
+		},
+		{
+			input: 'check for security vulnerabilities',
+			expectTool: 'wp-agentic-admin/security-scan',
+		},
+
 		// ── Diagnostics ────────────────────────────────────────────
 		{
 			input: 'show me the error log',
