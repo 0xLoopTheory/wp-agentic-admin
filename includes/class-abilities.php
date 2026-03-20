@@ -179,6 +179,10 @@ class Abilities {
 			wp_agentic_admin_register_disk_usage();
 		}
 
+		if ( function_exists( 'wp_agentic_admin_register_comment_stats' ) ) {
+			wp_agentic_admin_register_comment_stats();
+		}
+
 		/**
 		 * Fires after core abilities are registered.
 		 *
