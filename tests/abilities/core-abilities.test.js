@@ -117,6 +117,16 @@ module.exports = {
 			expectTool: 'core/get-environment-info',
 		},
 
+		// ── Editor blocks ─────────────────────────────────────────
+		{
+			input: 'what blocks are on this page?',
+			expectTool: 'core/get-editor-blocks',
+		},
+		{
+			input: 'list the blocks in the editor',
+			expectTool: 'core/get-editor-blocks',
+		},
+
 		// ── No-tool tests (pure knowledge questions) ───────────────
 		{
 			input: 'what is a transient in WordPress?',
