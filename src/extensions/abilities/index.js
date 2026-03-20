@@ -23,6 +23,15 @@ import { registerRewriteFlush } from './rewrite-flush';
 import { registerRewriteList } from './rewrite-list';
 import { registerRevisionCleanup } from './revision-cleanup';
 import { registerThemeList } from './theme-list';
+import { registerUserList } from './user-list';
+import { registerUpdateCheck } from './update-check';
+import { registerDiskUsage } from './disk-usage';
+import { registerCommentStats } from './comment-stats';
+import { registerSecurityScan } from './security-scan';
+import { registerPostList } from './post-list';
+import { registerErrorLogSearch } from './error-log-search';
+import { registerOpcodeCacheStatus } from './opcode-cache-status';
+import { registerBackupCheck } from './backup-check';
 import { registerCoreSiteInfo } from './core-site-info';
 import { registerCoreEnvironmentInfo } from './core-environment-info';
 import { registerCoreEditorBlocks } from './core-editor-blocks';
@@ -41,6 +50,15 @@ export { registerRewriteFlush } from './rewrite-flush';
 export { registerRewriteList } from './rewrite-list';
 export { registerRevisionCleanup } from './revision-cleanup';
 export { registerThemeList } from './theme-list';
+export { registerUserList } from './user-list';
+export { registerUpdateCheck } from './update-check';
+export { registerDiskUsage } from './disk-usage';
+export { registerCommentStats } from './comment-stats';
+export { registerSecurityScan } from './security-scan';
+export { registerPostList } from './post-list';
+export { registerErrorLogSearch } from './error-log-search';
+export { registerOpcodeCacheStatus } from './opcode-cache-status';
+export { registerBackupCheck } from './backup-check';
 export { registerCoreSiteInfo } from './core-site-info';
 export { registerCoreEnvironmentInfo } from './core-environment-info';
 export { registerCoreEditorBlocks } from './core-editor-blocks';
@@ -68,6 +86,15 @@ export function registerAllAbilities() {
 	registerRewriteList();
 	registerRevisionCleanup();
 	registerThemeList();
+	registerUserList();
+	registerUpdateCheck();
+	registerDiskUsage();
+	registerCommentStats();
+	registerSecurityScan();
+	registerPostList();
+	registerErrorLogSearch();
+	registerOpcodeCacheStatus();
+	registerBackupCheck();
 
 	// WordPress 6.9+ core ability wrappers
 	// These provide chat-friendly interfaces for WordPress core abilities
