@@ -66,6 +66,16 @@ module.exports = {
 			expectTool: 'wp-agentic-admin/update-check',
 		},
 
+		// ── Error log search ──────────────────────────────────────
+		{
+			input: 'search the error log for fatal errors',
+			expectTool: 'wp-agentic-admin/error-log-search',
+		},
+		{
+			input: 'filter the log for database warnings',
+			expectTool: 'wp-agentic-admin/error-log-search',
+		},
+
 		// ── Disk usage ────────────────────────────────────────────
 		{
 			input: 'how much disk space is my site using?',
@@ -76,6 +86,16 @@ module.exports = {
 			expectTool: 'wp-agentic-admin/disk-usage',
 		},
 
+		// ── OPcache status ────────────────────────────────────────
+		{
+			input: 'what is the opcache status?',
+			expectTool: 'wp-agentic-admin/opcode-cache-status',
+		},
+		{
+			input: 'is PHP opcode caching enabled?',
+			expectTool: 'wp-agentic-admin/opcode-cache-status',
+		},
+
 		// ── Comment stats ─────────────────────────────────────────
 		{
 			input: 'how many comments does my site have?',
@@ -84,6 +104,26 @@ module.exports = {
 		{
 			input: 'show me the spam comment count',
 			expectTool: 'wp-agentic-admin/comment-stats',
+		},
+
+		// ── Security ──────────────────────────────────────────────
+		{
+			input: 'run a security scan on my site',
+			expectTool: 'wp-agentic-admin/security-scan',
+		},
+		{
+			input: 'check for security vulnerabilities',
+			expectTool: 'wp-agentic-admin/security-scan',
+		},
+
+		// ── Post management ───────────────────────────────────────
+		{
+			input: 'list my recent posts',
+			expectTool: 'wp-agentic-admin/post-list',
+		},
+		{
+			input: 'show me all draft posts',
+			expectTool: 'wp-agentic-admin/post-list',
 		},
 
 		// ── Backup check ──────────────────────────────────────────
