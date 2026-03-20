@@ -183,6 +183,10 @@ class Abilities {
 			wp_agentic_admin_register_comment_stats();
 		}
 
+		if ( function_exists( 'wp_agentic_admin_register_opcode_cache_status' ) ) {
+			wp_agentic_admin_register_opcode_cache_status();
+		}
+
 		/**
 		 * Fires after core abilities are registered.
 		 *
