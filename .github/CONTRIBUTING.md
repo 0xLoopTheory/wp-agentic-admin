@@ -27,12 +27,18 @@ Welcome, hackathon contributor! This is a quick-start guide to get you up and ru
 
 ## Branch & PR
 
+We use a `dev` integration branch. Feature branches merge into `dev`; `dev` merges into `main` for releases.
+
 ```bash
+git checkout dev
+git pull origin dev
 git checkout -b feature/your-thing
 # hack hack hack
 git push origin feature/your-thing
-# open PR against main
+# open PR against dev
 ```
+
+Branch prefixes: `feature/`, `fix/`, `docs/`, `refactor/`.
 
 Keep commits small and descriptive. Conventional commit prefixes welcome: `feat:`, `fix:`, `docs:`, `refactor:`.
 
