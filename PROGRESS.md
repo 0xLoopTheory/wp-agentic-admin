@@ -11,11 +11,14 @@ Live progress for the WP Agentic Admin hackathon project. Updated as milestones 
 - [x] **Cross-linked scaling issues** — #20 (tool selection at scale) ↔ #37 (contextual skill loading)
 - [x] **Contributor notes posted** on #37 with starting points, constraints, and dev setup
 
+### Second PR Merged! — user-list ability (PR #41 by @ivdimova)
+Two abilities in one session! A **user-list ability** that lets the AI list all WordPress users with roles, registration dates, and **masked emails** for privacy (e.g., `iv***@example.com`). Uses `list_users` permission check and sorts by registration date (newest first). Merge conflicts with theme-list resolved, full suite passed **23/23 (100%)** against Qwen 3 1.7B. We're now at **16 abilities**.
+
 ### First PR Merged! — theme-list ability (PR #40 by @ivdimova)
 Our first hackathon contribution is in! ivdimova added a **theme-list ability** that lets the AI list all installed WordPress themes with their active/inactive status, version, and parent theme info. The ability uses `wp_get_themes()` on the PHP side and includes full chat integration (summarize, interpretResult) on the JS side. Three new test cases were added and the full suite passed **21/21 (100%)** against Qwen 3 1.7B via Ollama. This brings us to **15 abilities** total.
 
 ### Contributors
-- ivdimova — theme-list ability (PR #40, merged), self-assigned to #29 (web-search ability)
+- ivdimova — theme-list (PR #40), user-list (PR #41), assigned to #29 (web-search)
 
 ---
 
@@ -29,8 +32,8 @@ Our first hackathon contribution is in! ivdimova added a **theme-list ability** 
 - [x] Streaming `<think>` blocks with collapsible UI
 - [x] Post-tool nothink optimization for faster answers
 
-### Abilities (15 total)
-- [x] 13 plugin abilities: plugin list/activate/deactivate, theme list, cache flush, db optimize, error log, cron list, revision cleanup, rewrite list/flush, site health, transient flush
+### Abilities (16 total)
+- [x] 14 plugin abilities: plugin list/activate/deactivate, theme list, user list, cache flush, db optimize, error log, cron list, revision cleanup, rewrite list/flush, site health, transient flush
 - [x] 2 core WordPress wrappers: get-site-info, get-environment-info
 
 ### Testing
