@@ -56,6 +56,16 @@ module.exports = {
 			expectTool: 'wp-agentic-admin/user-list',
 		},
 
+		// ── Comment stats ─────────────────────────────────────────
+		{
+			input: 'how many comments does my site have?',
+			expectTool: 'wp-agentic-admin/comment-stats',
+		},
+		{
+			input: 'show me the spam comment count',
+			expectTool: 'wp-agentic-admin/comment-stats',
+		},
+
 		// ── Diagnostics ────────────────────────────────────────────
 		{
 			input: 'show me the error log',
