@@ -46,6 +46,16 @@ module.exports = {
 			expectTool: 'wp-agentic-admin/theme-list',
 		},
 
+		// ── User management ───────────────────────────────────────
+		{
+			input: 'list all users on this site',
+			expectTool: 'wp-agentic-admin/user-list',
+		},
+		{
+			input: 'show me the admin users',
+			expectTool: 'wp-agentic-admin/user-list',
+		},
+
 		// ── Diagnostics ────────────────────────────────────────────
 		{
 			input: 'show me the error log',
