@@ -31,6 +31,7 @@ import { registerSecurityScan } from './security-scan';
 import { registerPostList } from './post-list';
 import { registerErrorLogSearch } from './error-log-search';
 import { registerOpcodeCacheStatus } from './opcode-cache-status';
+import { registerBackupCheck } from './backup-check';
 import { registerCoreSiteInfo } from './core-site-info';
 import { registerCoreEnvironmentInfo } from './core-environment-info';
 
@@ -56,6 +57,7 @@ export { registerSecurityScan } from './security-scan';
 export { registerPostList } from './post-list';
 export { registerErrorLogSearch } from './error-log-search';
 export { registerOpcodeCacheStatus } from './opcode-cache-status';
+export { registerBackupCheck } from './backup-check';
 export { registerCoreSiteInfo } from './core-site-info';
 export { registerCoreEnvironmentInfo } from './core-environment-info';
 
@@ -90,6 +92,7 @@ export function registerAllAbilities() {
 	registerPostList();
 	registerErrorLogSearch();
 	registerOpcodeCacheStatus();
+	registerBackupCheck();
 
 	// WordPress 6.9+ core ability wrappers
 	// These provide chat-friendly interfaces for WordPress core abilities
