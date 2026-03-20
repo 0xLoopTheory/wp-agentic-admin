@@ -25,6 +25,7 @@ import { registerRevisionCleanup } from './revision-cleanup';
 import { registerThemeList } from './theme-list';
 import { registerUserList } from './user-list';
 import { registerUpdateCheck } from './update-check';
+import { registerDiskUsage } from './disk-usage';
 import { registerCoreSiteInfo } from './core-site-info';
 import { registerCoreEnvironmentInfo } from './core-environment-info';
 
@@ -44,6 +45,7 @@ export { registerRevisionCleanup } from './revision-cleanup';
 export { registerThemeList } from './theme-list';
 export { registerUserList } from './user-list';
 export { registerUpdateCheck } from './update-check';
+export { registerDiskUsage } from './disk-usage';
 export { registerCoreSiteInfo } from './core-site-info';
 export { registerCoreEnvironmentInfo } from './core-environment-info';
 
@@ -72,6 +74,7 @@ export function registerAllAbilities() {
 	registerThemeList();
 	registerUserList();
 	registerUpdateCheck();
+	registerDiskUsage();
 
 	// WordPress 6.9+ core ability wrappers
 	// These provide chat-friendly interfaces for WordPress core abilities
